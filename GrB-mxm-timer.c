@@ -16,14 +16,12 @@
 #endif
 #include <GraphBLAS.h>
 
-#include <memoryweb.h>
-#include <emu_c_utils/emu_c_utils.h>
-
 #include "cmdline.h"
 
 #include "globals.h"
 #include "generator.h" // for make_edge
 #include "prng.h" // for sample_roots
+#include "hooks.h"
 
 int verbose = 0;
 
