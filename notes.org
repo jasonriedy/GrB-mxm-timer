@@ -1,0 +1,28 @@
+
+steps:
+  - slurp in g500 generator
+  - create in chunks
+    - GrB_Matrix_build, then GrB_eWiseAdd
+
+sizes?
+  - node: 8GiB, estimate 6GiB usable, 3 2GiB matrices...  really likely 1-1.5GiB
+
+| 1073741824 | 44739243. | 25.415038       |
+#+TBLFM: $2=$1/(3*8)::$3=log($2)/log(2)
+
+really want the second matrix to be N x 16
+  - ER model with at least one per column?
+  - k per column?  k+/- rand?
+
+
+NOTE:  need variant of GrB_Matrix_build, etc. that take 1d-distributed arrays
+
+
+parameters:
+  - scale
+  - edge factor
+  - a, b, noisefact
+  - B_ncol, B_actual_ncols, B_nent_per_col
+  - A power / ntimes / nhop RANGE
+  - NE_chunk_size  default 3172?
+

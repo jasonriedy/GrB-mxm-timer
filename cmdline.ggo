@@ -1,0 +1,26 @@
+package "GrB-mxm-timer"
+version "0"
+versiontext "Copyright 2021, Lucata Corporation"
+description "Times the iteration of B = A*B"
+
+option "scale" s "Scale (log2 # vertices in A)" int optional default="16"
+option "edgefactor" e "Edge factor, so # edges = ef * 2^scale" int optional default="8"
+option "A" A "R-MAT upper left quadrant probability" float optional default="0.55"
+option "B" B "R-MAT upper right & lower left quadrant probability" float optional default="0.1"
+option "noisefact" N "Noise factor on each recursion" float optional default="0.1"
+
+text ""
+
+option "b-ncols" c "Number of columns in B" int optional default="16"
+option "b-used-ncols" C "Number of columns actually used in the initial B" int optional default="1"
+option "b-nents-col" E "Number of entries per column in the initial B" int optional default="1"
+
+text ""
+
+option "khops" k "Number of iterations / hops (can be a space-delim list)" string optional default="2 4 8"
+
+text ""
+
+# absolutely no good idea for NE-chunk-size
+option "NE-chunk-size" - "Number of edges to generate in a chunk." int optional default="1048576"
+option "verbose" - "Provide status updates via stdout." int optional argoptional default="1"
