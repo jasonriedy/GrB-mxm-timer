@@ -7,6 +7,7 @@
 
 #include <assert.h>
 
+#define FORCE_RANDOM123
 #include <Random123/threefry.h>
 #define R123_USE_U01_DOUBLE 1
 #include <Random123/u01fixedpt.h>

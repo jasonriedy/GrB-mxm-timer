@@ -46,11 +46,10 @@ make_A (GrB_Matrix *A, const GrB_Index NV, const GrB_Index NE, const GrB_Index N
      V = malloc (NE_chunk_size * sizeof (*V));
      if (!I || !J || !V) { info = GrB_OUT_OF_MEMORY; goto done; }
 
-     GrB_Index ck;
      for (GrB_Index ck = 0; ck < nchunks; ++ck) {
           if (verbose > 1) { printf ("  chunk %ld/%ld  ", (long)ck+1, (long)nchunks); fflush (stdout); }
           const GrB_Index ngen = (ck * NE_chunk_size <= NE? NE_chunk_size : NE - (ck-1) * NE_chunk_size);
-          edge_list_64 (I, J, V, ck*NE_chunk_size, ngen);
+          edge_list_64 ((int64_t*)I, (int64_t*)J, V, ck*NE_chunk_size, ngen);
           info = GrB_Matrix_build (tmpA, I, J, V, ngen, GrB_FIRST_UINT64);
           if (info != GrB_SUCCESS) goto done;
           info = GrB_eWiseAdd (*A, GrB_NULL, GrB_NULL, GrB_FIRST_UINT64, *A, tmpA, GrB_DESC_R);
@@ -82,7 +81,7 @@ make_B (GrB_Matrix *B, GrB_Index NV, GrB_Index B_ncols, GrB_Index B_used_ncols, 
      if (info != GrB_SUCCESS) return info;
 
      // key doesn't really matter, but must be reproducible.
-     sample_roots (I, nroot, NV * B_used_ncols * B_nents_per_col);
+     sample_roots ((int64_t*)I, nroot, NV * B_used_ncols * B_nents_per_col);
      for (GrB_Index k = 0; k < nroot; ++k) {
           V[k] = 1;
           J[k] = k / B_nents_per_col;
@@ -103,6 +102,7 @@ timed_loop (GrB_Matrix B, GrB_Matrix A, const int nhop)
           if (info != GrB_SUCCESS) return info;
      }
      GrB_wait();
+     return info;
 }
 
 static struct gengetopt_args_info args;

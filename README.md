@@ -42,9 +42,9 @@ Building
 
 This should build out of the box on a generic host system.
 
-To link with LucataGraphBLAS, override LDLIBS and possibly LDFLAGS to
-point to your build.
+To run on the stationary core but call LucataGraphBLAS via the SC/GC
+interface, override LDLIBS and possibly LDFLAGS to point to your build.
 
-To build completely as a MWX, add similar overrides (as well as the
-compiler), and call `make TARGET_MWX=1`.
+To build completely as a MWX for the Gossamer cores, add similar
+overrides (as well as the compiler), and call `make TARGET_MWX=1`.
 

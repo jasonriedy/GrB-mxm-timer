@@ -12,7 +12,7 @@ ifndef TARGET_MWX
 OBJS += hooks.o
 endif
 
-LDLIBS += -lm -lrt
+LDLIBS += -lm
 
 GrB-mxm-timer:	$(OBJS)
 

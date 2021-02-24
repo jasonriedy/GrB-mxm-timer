@@ -6,7 +6,9 @@
 
 #define _FILE_OFFSET_BITS 64
 #define _THREAD_SAFE
+#if !defined(_XOPEN_SOURCE)
 #define _XOPEN_SOURCE 600
+#endif
 #define _XOPEN_SOURCE_EXTENDED
 #define _DEFAULT_SOURCE
 
@@ -56,8 +58,10 @@ static int omp_get_num_threads (void) { return 1; }
 
 #if defined(__GNUC__)
 #define CONST_FN_ATTR __attribute__((const))
+#define UNUSED_FN_ATTR __attribute__((unused))
 #else
 #define CONST_FN_ATTR
+#define UNUSED_FN_ATTR
 #endif
 
 #endif /* COMPAT_HEADER_ */

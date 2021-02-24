@@ -35,14 +35,14 @@ mult_big_mod (const int64_t k, const uint64_t hi, const uint64_t low)
   return out;
 }
 
-static inline int64_t idx_to_loc_big (const int64_t) CONST_FN_ATTR;
+static inline int64_t idx_to_loc_big (const int64_t) CONST_FN_ATTR UNUSED_FN_ATTR;
 int64_t
 idx_to_loc_big (const int64_t k)
 {
   return mult_big_mod (k, Z_hi, Z_low);
 }
 
-static inline int64_t idx_to_loc_small (const int64_t) CONST_FN_ATTR;
+static inline int64_t idx_to_loc_small (const int64_t) CONST_FN_ATTR UNUSED_FN_ATTR;
 int64_t
 idx_to_loc_small (const int64_t k)
 {
@@ -98,7 +98,7 @@ edge_list_64 (int64_t * restrict i, int64_t * restrict j, uint64_t * restrict w,
     parfor (int64_t t = 0; t < ne_len; ++t) {
       const int64_t kp = ne_begin + t;
       const int64_t k = loc_to_idx_small (kp);
-      int8_t w_scalar;
+      uint8_t w_scalar;
       make_edge (k, &i[t], &j[t], &w_scalar);
       w[t] = w_scalar;
     }
@@ -106,7 +106,7 @@ edge_list_64 (int64_t * restrict i, int64_t * restrict j, uint64_t * restrict w,
     parfor (int64_t t = 0; t < ne_len; ++t) {
       const int64_t kp = ne_begin + t;
       const int64_t k = loc_to_idx_big (kp);
-      int8_t w_scalar;
+      uint8_t w_scalar;
       make_edge (k, &i[t], &j[t], &w_scalar);
       w[t] = w_scalar;
     }

@@ -1,0 +1,6 @@
+# -*- Makefile -*-
+CC := /usr/local/emu/bin/emu-cc
+LD := /usr/local/emu/bin/emu-cc
+LDFLAGS :=
+LDLIBS := -lemu_c_utils
+CFLAGS :=
