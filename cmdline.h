@@ -72,6 +72,12 @@ struct gengetopt_args_info
   int verbose_arg;	/**< @brief Provide status updates via stdout. (default='1').  */
   char * verbose_orig;	/**< @brief Provide status updates via stdout. original value given at command line.  */
   const char *verbose_help; /**< @brief Provide status updates via stdout. help description.  */
+  int no_time_A_flag;	/**< @brief Do not time A (default=off).  */
+  const char *no_time_A_help; /**< @brief Do not time A help description.  */
+  int no_time_B_flag;	/**< @brief Do not time B (default=off).  */
+  const char *no_time_B_help; /**< @brief Do not time B help description.  */
+  int no_time_iter_flag;	/**< @brief Do not time iteration (default=off).  */
+  const char *no_time_iter_help; /**< @brief Do not time iteration help description.  */
   
   unsigned int help_given ;	/**< @brief Whether help was given.  */
   unsigned int version_given ;	/**< @brief Whether version was given.  */
@@ -86,6 +92,9 @@ struct gengetopt_args_info
   unsigned int khops_given ;	/**< @brief Whether khops was given.  */
   unsigned int NE_chunk_size_given ;	/**< @brief Whether NE-chunk-size was given.  */
   unsigned int verbose_given ;	/**< @brief Whether verbose was given.  */
+  unsigned int no_time_A_given ;	/**< @brief Whether no-time-A was given.  */
+  unsigned int no_time_B_given ;	/**< @brief Whether no-time-B was given.  */
+  unsigned int no_time_iter_given ;	/**< @brief Whether no-time-iter was given.  */
 
 } ;
 

@@ -2,7 +2,7 @@
 CC := /usr/local/emu/bin/emu-cc
 LD := /usr/local/emu/bin/emu-cc
 LGrB_dir := ${HOME}/Projects/lucata/LucataGraphBLAS
-CFLAGS :=
+CFLAGS := -O3
 LDFLAGS += -L$(LGrB_dir)/build-GC/src/lib
 CPPFLAGS += -I$(LGrB_dir)/src/include
 LDLIBS += -lLucataGraphBLAS -lemu_c_utils

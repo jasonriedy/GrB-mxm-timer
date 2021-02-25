@@ -42,5 +42,4 @@ GrB-mxm-timer.mwx: GrB-mxm-timer
 
 .PHONY: clean
 clean:
-	rm -f GrB-mxm-timer $(OBJS)
-
+	rm -f GrB-mxm-timer.mwx GrB-mxm-timer $(OBJS)

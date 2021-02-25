@@ -50,10 +50,14 @@ const char *gengetopt_args_info_help[] = {
   "",
   "      --NE-chunk-size=INT  Number of edges to generate in a chunk.\n                             (default=`1048576')",
   "      --verbose[=INT]      Provide status updates via stdout.  (default=`1')",
+  "      --no-time-A          Do not time A  (default=off)",
+  "      --no-time-B          Do not time B  (default=off)",
+  "      --no-time-iter       Do not time iteration  (default=off)",
     0
 };
 
 typedef enum {ARG_NO
+  , ARG_FLAG
   , ARG_STRING
   , ARG_INT
   , ARG_FLOAT
@@ -88,6 +92,9 @@ void clear_given (struct gengetopt_args_info *args_info)
   args_info->khops_given = 0 ;
   args_info->NE_chunk_size_given = 0 ;
   args_info->verbose_given = 0 ;
+  args_info->no_time_A_given = 0 ;
+  args_info->no_time_B_given = 0 ;
+  args_info->no_time_iter_given = 0 ;
 }
 
 static
@@ -116,6 +123,9 @@ void clear_args (struct gengetopt_args_info *args_info)
   args_info->NE_chunk_size_orig = NULL;
   args_info->verbose_arg = 1;
   args_info->verbose_orig = NULL;
+  args_info->no_time_A_flag = 0;
+  args_info->no_time_B_flag = 0;
+  args_info->no_time_iter_flag = 0;
   
 }
 
@@ -137,6 +147,9 @@ void init_args_info(struct gengetopt_args_info *args_info)
   args_info->khops_help = gengetopt_args_info_help[12] ;
   args_info->NE_chunk_size_help = gengetopt_args_info_help[14] ;
   args_info->verbose_help = gengetopt_args_info_help[15] ;
+  args_info->no_time_A_help = gengetopt_args_info_help[16] ;
+  args_info->no_time_B_help = gengetopt_args_info_help[17] ;
+  args_info->no_time_iter_help = gengetopt_args_info_help[18] ;
   
 }
 
@@ -294,6 +307,12 @@ cmdline_parser_dump(FILE *outfile, struct gengetopt_args_info *args_info)
     write_into_file(outfile, "NE-chunk-size", args_info->NE_chunk_size_orig, 0);
   if (args_info->verbose_given)
     write_into_file(outfile, "verbose", args_info->verbose_orig, 0);
+  if (args_info->no_time_A_given)
+    write_into_file(outfile, "no-time-A", 0, 0 );
+  if (args_info->no_time_B_given)
+    write_into_file(outfile, "no-time-B", 0, 0 );
+  if (args_info->no_time_iter_given)
+    write_into_file(outfile, "no-time-iter", 0, 0 );
   
 
   i = EXIT_SUCCESS;
@@ -460,6 +479,9 @@ int update_arg(void *field, char **orig_field,
     val = possible_values[found];
 
   switch(arg_type) {
+  case ARG_FLAG:
+    *((int *)field) = !*((int *)field);
+    break;
   case ARG_INT:
     if (val) *((int *)field) = strtol (val, &stop_char, 0);
     break;
@@ -494,6 +516,7 @@ int update_arg(void *field, char **orig_field,
   /* store the original value */
   switch(arg_type) {
   case ARG_NO:
+  case ARG_FLAG:
     break;
   default:
     if (value && orig_field) {
@@ -567,6 +590,9 @@ cmdline_parser_internal (
         { "khops",	1, NULL, 'k' },
         { "NE-chunk-size",	1, NULL, 0 },
         { "verbose",	2, NULL, 0 },
+        { "no-time-A",	0, NULL, 0 },
+        { "no-time-B",	0, NULL, 0 },
+        { "no-time-iter",	0, NULL, 0 },
         { 0,  0, 0, 0 }
       };
 
@@ -720,6 +746,42 @@ cmdline_parser_internal (
                 &(local_args_info.verbose_given), optarg, 0, "1", ARG_INT,
                 check_ambiguity, override, 0, 0,
                 "verbose", '-',
+                additional_error))
+              goto failure;
+          
+          }
+          /* Do not time A.  */
+          else if (strcmp (long_options[option_index].name, "no-time-A") == 0)
+          {
+          
+          
+            if (update_arg((void *)&(args_info->no_time_A_flag), 0, &(args_info->no_time_A_given),
+                &(local_args_info.no_time_A_given), optarg, 0, 0, ARG_FLAG,
+                check_ambiguity, override, 1, 0, "no-time-A", '-',
+                additional_error))
+              goto failure;
+          
+          }
+          /* Do not time B.  */
+          else if (strcmp (long_options[option_index].name, "no-time-B") == 0)
+          {
+          
+          
+            if (update_arg((void *)&(args_info->no_time_B_flag), 0, &(args_info->no_time_B_given),
+                &(local_args_info.no_time_B_given), optarg, 0, 0, ARG_FLAG,
+                check_ambiguity, override, 1, 0, "no-time-B", '-',
+                additional_error))
+              goto failure;
+          
+          }
+          /* Do not time iteration.  */
+          else if (strcmp (long_options[option_index].name, "no-time-iter") == 0)
+          {
+          
+          
+            if (update_arg((void *)&(args_info->no_time_iter_flag), 0, &(args_info->no_time_iter_given),
+                &(local_args_info.no_time_iter_given), optarg, 0, 0, ARG_FLAG,
+                check_ambiguity, override, 1, 0, "no-time-iter", '-',
                 additional_error))
               goto failure;
           

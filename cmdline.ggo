@@ -24,3 +24,6 @@ text ""
 # absolutely no good idea for NE-chunk-size
 option "NE-chunk-size" - "Number of edges to generate in a chunk." int optional default="1048576"
 option "verbose" - "Provide status updates via stdout." int optional argoptional default="1"
+option "no-time-A" - "Do not time A" flag off
+option "no-time-B" - "Do not time B" flag off
+option "no-time-iter" - "Do not time iteration" flag off

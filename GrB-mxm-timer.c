@@ -25,6 +25,15 @@
 
 int verbose = 0;
 
+#if defined(NDEBUG)
+#define DEBUG_PRINT(...)
+#else
+#define DEBUG_PRINT(...) do { fprintf (stderr, __VA_ARGS__); } while (0)
+#endif
+
+#define VERBOSELVL_PRINT(lvl, ...) do { if (verbose >= lvl) { fprintf (stderr, __VA_ARGS__); fflush (stderr); } } while (0)
+#define VERBOSE_PRINT(...) VERBOSELVL_PRINT(1, __VA_ARGS__)
+
 static GrB_Info
 make_A (GrB_Matrix *A, const GrB_Index NV, const GrB_Index NE, const GrB_Index NE_chunk_size)
 {
@@ -35,9 +44,11 @@ make_A (GrB_Matrix *A, const GrB_Index NV, const GrB_Index NE, const GrB_Index N
      uint64_t *V = NULL;
      const GrB_Index nchunks = (NE + NE_chunk_size - 1)/NE_chunk_size;
 
+     DEBUG_PRINT("new A\n");
      info = GrB_Matrix_new (&tmpA, GrB_UINT64, NV, NV);
      if (info != GrB_SUCCESS) return info;
 
+     DEBUG_PRINT("new Atmp\n");
      info = GrB_Matrix_new (A, GrB_UINT64, NV, NV);
      if (info != GrB_SUCCESS) goto done;
 
@@ -47,7 +58,7 @@ make_A (GrB_Matrix *A, const GrB_Index NV, const GrB_Index NE, const GrB_Index N
      if (!I || !J || !V) { info = GrB_OUT_OF_MEMORY; goto done; }
 
      for (GrB_Index ck = 0; ck < nchunks; ++ck) {
-          if (verbose > 1) { printf ("  chunk %ld/%ld  ", (long)ck+1, (long)nchunks); fflush (stdout); }
+          VERBOSELVL_PRINT(2, "  chunk %ld/%ld  ", (long)ck+1, (long)nchunks);
           const GrB_Index ngen = (ck * NE_chunk_size <= NE? NE_chunk_size : NE - (ck-1) * NE_chunk_size);
           edge_list_64 ((int64_t*)I, (int64_t*)J, V, ck*NE_chunk_size, ngen);
           info = GrB_Matrix_build (tmpA, I, J, V, ngen, GrB_FIRST_UINT64);
@@ -110,6 +121,7 @@ static struct gengetopt_args_info args;
 int
 main (int argc, char **argv) 
 {
+     VERBOSE_PRINT("LAUNCHED\n");
      if (0 != cmdline_parser (argc, argv, &args))
           exit (1);
      if (NULL != getenv ("VERBOSE")) {
@@ -126,9 +138,13 @@ main (int argc, char **argv)
           perror ("Cannot malloc khops");
           exit (1);
      }
-     char *saveptr = NULL, *token;
+     DEBUG_PRINT("parsing hops\n");
+     char *saveptr = NULL, *token = NULL;
+     char *inputptr = args.khops_arg;
      for (;;) {
-          token = strtok_r ((saveptr == NULL ? args.khops_arg : NULL), " \n", &saveptr);
+          token = strtok_r (inputptr, " \n", &saveptr);
+          DEBUG_PRINT("hop %d  %p %p %p\n", n_khops, token, inputptr, saveptr);
+          inputptr = NULL;
           if (token == NULL) break;
           errno = 0;
           long hop = strtol (token, NULL, 10);
@@ -143,8 +159,9 @@ main (int argc, char **argv)
           }
           khops[n_khops++] = hop;
      }
+     DEBUG_PRINT("done parsing hops\n");
 
-     if (verbose) { printf ("Starting GrB-mxm-timer\n"); fflush (stdout); }
+     VERBOSE_PRINT("Starting GrB-mxm-timer\n");
 
      init_globals (args.scale_arg, args.edgefactor_arg, 255,
                    1, // unused
@@ -159,37 +176,43 @@ main (int argc, char **argv)
           exit (1);
      }
 
-     if (verbose) { printf ("Creating A... "); fflush (stdout); }
-     hooks_set_attr_i64 ("scale", SCALE);
-     hooks_set_attr_i64 ("edgefactor", EF);
-     hooks_set_attr_f64 ("A", args.A_arg);
-     hooks_set_attr_f64 ("B", args.B_arg);
-     hooks_set_attr_f64 ("noisefact", NOISEFACT);
-     hooks_region_begin ("Generating matrix A");
-     {
-          info = make_A (&A, NV, NE, args.NE_chunk_size_arg);
+     VERBOSE_PRINT("Creating A... ");
+     if (!args.no_time_A_flag) {
+          hooks_set_attr_i64 ("scale", SCALE);
+          hooks_set_attr_i64 ("edgefactor", EF);
+          hooks_set_attr_f64 ("A", args.A_arg);
+          hooks_set_attr_f64 ("B", args.B_arg);
+          hooks_set_attr_f64 ("noisefact", NOISEFACT);
+          hooks_region_begin ("Generating matrix A");
      }
-     const double A_time = hooks_region_end ();
+
+     info = make_A (&A, NV, NE, args.NE_chunk_size_arg);
+
+     double A_time = 0.0;
+     if (!args.no_time_A_flag) A_time = hooks_region_end ();
      if (info != GrB_SUCCESS) {
           fprintf (stderr, "Error making A: %ld\n", (long)info);
           exit (1);
      }
-     if (verbose) { printf ("%g ms\n", A_time); fflush (stdout); }
+     VERBOSE_PRINT("%g ms\n", A_time);
 
-     if (verbose) { printf ("Creating Bini... "); fflush (stdout); }
-     hooks_set_attr_i64 ("b-ncols", args.b_ncols_arg);
-     hooks_set_attr_i64 ("b-used-ncols", args.b_used_ncols_arg);
-     hooks_set_attr_i64 ("b-nents-col", args.b_nents_col_arg);
-     hooks_region_begin ("Generating Bini");
-     {
-          info = make_B (&Bini, NV, args.b_ncols_arg, args.b_used_ncols_arg, args.b_nents_col_arg);
+     VERBOSE_PRINT("Creating Bini... ");
+     if (!args.no_time_B_flag) {
+          hooks_set_attr_i64 ("b-ncols", args.b_ncols_arg);
+          hooks_set_attr_i64 ("b-used-ncols", args.b_used_ncols_arg);
+          hooks_set_attr_i64 ("b-nents-col", args.b_nents_col_arg);
+          hooks_region_begin ("Generating Bini");
      }
-     const double Bini_time = hooks_region_end ();
+
+     info = make_B (&Bini, NV, args.b_ncols_arg, args.b_used_ncols_arg, args.b_nents_col_arg);
+
+     double Bini_time = 0.0;
+     if (!args.no_time_B_flag) hooks_region_end ();
      if (info != GrB_SUCCESS) {
           fprintf (stderr, "Error making Bini: %ld\n", (long)info);
           exit (1);
      }
-     if (verbose) { printf ("%g ms\n", Bini_time); fflush (stdout); }
+     VERBOSE_PRINT("%g ms\n", Bini_time);
 
      for (int k = 0; k < n_khops; ++k) {
           info = GrB_Matrix_dup (&B, Bini);
@@ -198,18 +221,21 @@ main (int argc, char **argv)
                exit (1);
           }
 
-          if (verbose) { printf ("Running hop #%d for %ld steps... ", k, khops[k]); fflush (stdout); }
-          hooks_set_attr_i64 ("khop", khops[k]);
-          hooks_region_begin ("Iterating");
-          {
-               info = timed_loop (B, A, khops[k]);
+          VERBOSE_PRINT("Running hop #%d for %ld steps... ", k, khops[k]);
+          if (!args.no_time_iter_flag) {
+               hooks_set_attr_i64 ("khop", khops[k]);
+               hooks_region_begin ("Iterating");
           }
-          const double iter_time = hooks_region_end ();
-          if (verbose) { printf ("%g ms\n", iter_time); fflush (stdout); }
+
+          info = timed_loop (B, A, khops[k]);
+
+          double iter_time = 0.0;
+          if (!args.no_time_iter_flag) hooks_region_end ();
+          VERBOSE_PRINT("%g ms\n", iter_time);
 
           GrB_free (&B);
      }
 
-     if (verbose) { printf ("DONE\n"); fflush (stdout); }
+     VERBOSE_PRINT("DONE\n");
      GrB_finalize ();
 }
