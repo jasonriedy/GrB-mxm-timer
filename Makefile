@@ -20,7 +20,12 @@ else
 TARGET_EXECUTABLE = GrB-mxm-timer
 endif
 
-$(TARGET_EXECUTABLE): $(OBJS)
+all: $(TARGET_EXECUTABLE)
+
+GrB-mxm-timer: $(OBJS)
+
+%.mwx: %
+	cp $< $@
 
 cmdline.c cmdline.h &: cmdline.ggo
 	gengetopt < $^
@@ -32,6 +37,10 @@ prng.o: prng.c prng.h globals.h
 globals.o: globals.c globals.h
 hooks.o: hooks.c hooks.h
 
+# Ugly hack.
+GrB-mxm-timer.mwx: GrB-mxm-timer
+
 .PHONY: clean
 clean:
 	rm -f GrB-mxm-timer $(OBJS)
+
