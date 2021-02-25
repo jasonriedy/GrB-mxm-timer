@@ -98,7 +98,7 @@ timed_loop (GrB_Matrix B, GrB_Matrix A, const int nhop)
 {
      GrB_Info info;
      for (int k = 0; k < nhop; ++k) {
-          info = GrB_mxm (B, GrB_NULL, GrB_NULL, GrB_MIN_FIRST_SEMIRING_FP64, A, B, GrB_DESC_R);
+          info = GrB_mxm (B, GrB_NULL, GrB_NULL, GxB_MIN_FIRST_FP64, A, B, GrB_DESC_R);
           if (info != GrB_SUCCESS) return info;
      }
      GrB_wait();
@@ -143,6 +143,8 @@ main (int argc, char **argv)
           }
           khops[n_khops++] = hop;
      }
+
+     if (verbose) { printf ("Starting GrB-mxm-timer\n"); fflush (stdout); }
 
      init_globals (args.scale_arg, args.edgefactor_arg, 255,
                    1, // unused

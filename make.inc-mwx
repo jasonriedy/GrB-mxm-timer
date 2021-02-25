@@ -1,6 +1,8 @@
 # -*- Makefile -*-
 CC := /usr/local/emu/bin/emu-cc
 LD := /usr/local/emu/bin/emu-cc
-LDFLAGS :=
-LDLIBS := -lemu_c_utils
-CFLAGS :=
+LGrB_dir := ${HOME}/Projects/lucata/LucataGraphBLAS
+LDFLAGS += -L$(LGrB_dir)/build-GC/src/lib
+CPPFLAGS += -I$(LGrB_dir)/src/include
+LDLIBS += -lLucataGraphBLAS -lemu_c_utils
+

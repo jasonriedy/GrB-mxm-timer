@@ -3,7 +3,6 @@
 -include make.inc
 CC ?= gcc
 CFLAGS ?= -std=c11 -ggdb -O3 -fopenmp
-CPPFLAGS ?= -Irandom123/include
 LDFLAGS ?= -fopenmp
 LDLIBS ?= -lgraphblas
 
@@ -12,9 +11,16 @@ ifndef TARGET_MWX
 OBJS += hooks.o
 endif
 
+CPPFLAGS += -Irandom123/include
 LDLIBS += -lm
 
-GrB-mxm-timer:	$(OBJS)
+ifdef TARGET_MWX
+TARGET_EXECUTABLE = GrB-mxm-timer.mwx
+else
+TARGET_EXECUTABLE = GrB-mxm-timer
+endif
+
+$(TARGET_EXECUTABLE): $(OBJS)
 
 cmdline.c cmdline.h &: cmdline.ggo
 	gengetopt < $^
@@ -28,4 +34,4 @@ hooks.o: hooks.c hooks.h
 
 .PHONY: clean
 clean:
-	rm -f GrB-mxm-timer GrB-mxm-timer.o cmdline.o generator.o prng.o globals.o
+	rm -f GrB-mxm-timer $(OBJS)
