@@ -2,8 +2,8 @@
 *~
 GrB-mxm-timer
 make.inc
-GrB-mxm-timer.cdc
-GrB-mxm-timer.hdd
-GrB-mxm-timer.mps
-GrB-mxm-timer.mwx
-GrB-mxm-timer.vsf
+*.cdc
+*.hdd
+*.mps
+*.mwx
+*.vsf
