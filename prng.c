@@ -75,10 +75,9 @@ uint8_t
 random_weight (int64_t idx)
 {
   uint8_t out;
-  float outf;
-  outf = ceilf (MAXWEIGHT * fprng (idx, 0));
+  float outf = fprng (idx, 0);
+  outf = ceil (MAXWEIGHT * outf);
   out = (uint8_t) outf;
-  if (!out) fprintf (stderr, "wtf %d %g %d\n", MAXWEIGHT, (double)outf, (int)out);
   assert (out > 0);
   return out;
 }

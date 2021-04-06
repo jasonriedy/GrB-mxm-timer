@@ -7,3 +7,6 @@ make.inc
 *.mps
 *.mwx
 *.vsf
+GPATH
+GRTAGS
+GTAGS

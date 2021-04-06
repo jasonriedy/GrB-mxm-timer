@@ -58,8 +58,10 @@ make_A (GrB_Matrix *A, const GrB_Index NV, const GrB_Index NE, const GrB_Index N
      if (!I || !J || !V) { info = GrB_OUT_OF_MEMORY; goto done; }
 
      for (GrB_Index ck = 0; ck < nchunks; ++ck) {
-          VERBOSELVL_PRINT(2, "  chunk %ld/%ld  ", (long)ck+1, (long)nchunks);
-          const GrB_Index ngen = (ck * NE_chunk_size <= NE? NE_chunk_size : NE - (ck-1) * NE_chunk_size);
+          GrB_Index ngen = NE_chunk_size;
+          if (ck * NE_chunk_size + ngen > NE)
+               ngen = NE - ck * NE_chunk_size;
+          VERBOSELVL_PRINT(2, "  chunk %ld/%ld  %ld %ld\n", (long)ck+1, (long)nchunks, (long)NE, (long)ngen);
           edge_list_64 ((int64_t*)I, (int64_t*)J, V, ck*NE_chunk_size, ngen);
           info = GrB_Matrix_build (tmpA, I, J, V, ngen, GrB_FIRST_UINT64);
           if (info != GrB_SUCCESS) goto done;
