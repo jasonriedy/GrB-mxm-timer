@@ -148,7 +148,7 @@ main (int argc, char **argv)
      char *saveptr = NULL, *token = NULL;
      char *inputptr = args.khops_arg;
      for (;;) {
-          token = strtok_r (inputptr, " \n", &saveptr);
+          token = strtok_r (inputptr, " ,\n", &saveptr);
           DEBUG_PRINT("hop %d  %p %p %p\n", n_khops, token, inputptr, saveptr);
           inputptr = NULL;
           if (token == NULL) break;
