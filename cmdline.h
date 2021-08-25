@@ -54,6 +54,8 @@ struct gengetopt_args_info
   float noisefact_arg;	/**< @brief Noise factor on each recursion (default='0.1').  */
   char * noisefact_orig;	/**< @brief Noise factor on each recursion original value given at command line.  */
   const char *noisefact_help; /**< @brief Noise factor on each recursion help description.  */
+  int run_powers_flag;	/**< @brief Run powers of the generated A matrix rather than applying A to B (default=off).  */
+  const char *run_powers_help; /**< @brief Run powers of the generated A matrix rather than applying A to B help description.  */
   int b_ncols_arg;	/**< @brief Number of columns in B (default='16').  */
   char * b_ncols_orig;	/**< @brief Number of columns in B original value given at command line.  */
   const char *b_ncols_help; /**< @brief Number of columns in B help description.  */
@@ -86,6 +88,7 @@ struct gengetopt_args_info
   unsigned int A_given ;	/**< @brief Whether A was given.  */
   unsigned int B_given ;	/**< @brief Whether B was given.  */
   unsigned int noisefact_given ;	/**< @brief Whether noisefact was given.  */
+  unsigned int run_powers_given ;	/**< @brief Whether run-powers was given.  */
   unsigned int b_ncols_given ;	/**< @brief Whether b-ncols was given.  */
   unsigned int b_used_ncols_given ;	/**< @brief Whether b-used-ncols was given.  */
   unsigned int b_nents_col_given ;	/**< @brief Whether b-nents-col was given.  */

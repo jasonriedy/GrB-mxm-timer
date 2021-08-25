@@ -202,26 +202,31 @@ main (int argc, char **argv)
      }
      VERBOSE_PRINT("%g ms\n", A_time);
 
-     VERBOSE_PRINT("Creating Bini... ");
-     if (!args.no_time_B_flag) {
-          hooks_set_attr_i64 ("b-ncols", args.b_ncols_arg);
-          hooks_set_attr_i64 ("b-used-ncols", args.b_used_ncols_arg);
-          hooks_set_attr_i64 ("b-nents-col", args.b_nents_col_arg);
-          hooks_region_begin ("Generating Bini");
-     }
+     if (!args.run_powers_flag) {
+          VERBOSE_PRINT("Creating Bini... ");
+          if (!args.no_time_B_flag) {
+               hooks_set_attr_i64 ("b-ncols", args.b_ncols_arg);
+               hooks_set_attr_i64 ("b-used-ncols", args.b_used_ncols_arg);
+               hooks_set_attr_i64 ("b-nents-col", args.b_nents_col_arg);
+               hooks_region_begin ("Generating Bini");
+          }
 
-     info = make_B (&Bini, NV, args.b_ncols_arg, args.b_used_ncols_arg, args.b_nents_col_arg);
+          info = make_B (&Bini, NV, args.b_ncols_arg, args.b_used_ncols_arg, args.b_nents_col_arg);
 
-     double Bini_time = 0.0;
-     if (!args.no_time_B_flag) hooks_region_end ();
-     if (info != GrB_SUCCESS) {
-          fprintf (stderr, "Error making Bini: %ld\n", (long)info);
-          exit (1);
+          double Bini_time = 0.0;
+          if (!args.no_time_B_flag) hooks_region_end ();
+          if (info != GrB_SUCCESS) {
+               fprintf (stderr, "Error making Bini: %ld\n", (long)info);
+               exit (1);
+          }
+          VERBOSE_PRINT("%g ms\n", Bini_time);
      }
-     VERBOSE_PRINT("%g ms\n", Bini_time);
 
      for (int k = 0; k < n_khops; ++k) {
-          info = GrB_Matrix_dup (&B, Bini);
+          if (args.run_powers_flag)
+               info = GrB_Matrix_dup (&B, A);
+          else
+               info = GrB_Matrix_dup (&B, Bini);
           if (info != GrB_SUCCESS) {
                fprintf (stderr, "Error copying B = Bini on hop value %d\n", k);
                exit (1);

@@ -41,6 +41,7 @@ const char *gengetopt_args_info_help[] = {
   "  -A, --A=FLOAT            R-MAT upper left quadrant probability\n                             (default=`0.55')",
   "  -B, --B=FLOAT            R-MAT upper right & lower left quadrant probability\n                             (default=`0.1')",
   "  -N, --noisefact=FLOAT    Noise factor on each recursion  (default=`0.1')",
+  "      --run-powers         Run powers of the generated A matrix rather than\n                             applying A to B  (default=off)",
   "",
   "  -c, --b-ncols=INT        Number of columns in B  (default=`16')",
   "  -C, --b-used-ncols=INT   Number of columns actually used in the initial B\n                             (default=`1')",
@@ -86,6 +87,7 @@ void clear_given (struct gengetopt_args_info *args_info)
   args_info->A_given = 0 ;
   args_info->B_given = 0 ;
   args_info->noisefact_given = 0 ;
+  args_info->run_powers_given = 0 ;
   args_info->b_ncols_given = 0 ;
   args_info->b_used_ncols_given = 0 ;
   args_info->b_nents_col_given = 0 ;
@@ -111,6 +113,7 @@ void clear_args (struct gengetopt_args_info *args_info)
   args_info->B_orig = NULL;
   args_info->noisefact_arg = 0.1;
   args_info->noisefact_orig = NULL;
+  args_info->run_powers_flag = 0;
   args_info->b_ncols_arg = 16;
   args_info->b_ncols_orig = NULL;
   args_info->b_used_ncols_arg = 1;
@@ -141,15 +144,16 @@ void init_args_info(struct gengetopt_args_info *args_info)
   args_info->A_help = gengetopt_args_info_help[4] ;
   args_info->B_help = gengetopt_args_info_help[5] ;
   args_info->noisefact_help = gengetopt_args_info_help[6] ;
-  args_info->b_ncols_help = gengetopt_args_info_help[8] ;
-  args_info->b_used_ncols_help = gengetopt_args_info_help[9] ;
-  args_info->b_nents_col_help = gengetopt_args_info_help[10] ;
-  args_info->khops_help = gengetopt_args_info_help[12] ;
-  args_info->NE_chunk_size_help = gengetopt_args_info_help[14] ;
-  args_info->verbose_help = gengetopt_args_info_help[15] ;
-  args_info->no_time_A_help = gengetopt_args_info_help[16] ;
-  args_info->no_time_B_help = gengetopt_args_info_help[17] ;
-  args_info->no_time_iter_help = gengetopt_args_info_help[18] ;
+  args_info->run_powers_help = gengetopt_args_info_help[7] ;
+  args_info->b_ncols_help = gengetopt_args_info_help[9] ;
+  args_info->b_used_ncols_help = gengetopt_args_info_help[10] ;
+  args_info->b_nents_col_help = gengetopt_args_info_help[11] ;
+  args_info->khops_help = gengetopt_args_info_help[13] ;
+  args_info->NE_chunk_size_help = gengetopt_args_info_help[15] ;
+  args_info->verbose_help = gengetopt_args_info_help[16] ;
+  args_info->no_time_A_help = gengetopt_args_info_help[17] ;
+  args_info->no_time_B_help = gengetopt_args_info_help[18] ;
+  args_info->no_time_iter_help = gengetopt_args_info_help[19] ;
   
 }
 
@@ -295,6 +299,8 @@ cmdline_parser_dump(FILE *outfile, struct gengetopt_args_info *args_info)
     write_into_file(outfile, "B", args_info->B_orig, 0);
   if (args_info->noisefact_given)
     write_into_file(outfile, "noisefact", args_info->noisefact_orig, 0);
+  if (args_info->run_powers_given)
+    write_into_file(outfile, "run-powers", 0, 0 );
   if (args_info->b_ncols_given)
     write_into_file(outfile, "b-ncols", args_info->b_ncols_orig, 0);
   if (args_info->b_used_ncols_given)
@@ -584,6 +590,7 @@ cmdline_parser_internal (
         { "A",	1, NULL, 'A' },
         { "B",	1, NULL, 'B' },
         { "noisefact",	1, NULL, 'N' },
+        { "run-powers",	0, NULL, 0 },
         { "b-ncols",	1, NULL, 'c' },
         { "b-used-ncols",	1, NULL, 'C' },
         { "b-nents-col",	1, NULL, 'E' },
@@ -722,8 +729,20 @@ cmdline_parser_internal (
           break;
 
         case 0:	/* Long option with no short option */
+          /* Run powers of the generated A matrix rather than applying A to B.  */
+          if (strcmp (long_options[option_index].name, "run-powers") == 0)
+          {
+          
+          
+            if (update_arg((void *)&(args_info->run_powers_flag), 0, &(args_info->run_powers_given),
+                &(local_args_info.run_powers_given), optarg, 0, 0, ARG_FLAG,
+                check_ambiguity, override, 1, 0, "run-powers", '-',
+                additional_error))
+              goto failure;
+          
+          }
           /* Number of edges to generate in a chunk..  */
-          if (strcmp (long_options[option_index].name, "NE-chunk-size") == 0)
+          else if (strcmp (long_options[option_index].name, "NE-chunk-size") == 0)
           {
           
           
