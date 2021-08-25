@@ -63,11 +63,15 @@ make_A (GrB_Matrix *A, const GrB_Index NV, const GrB_Index NE, const GrB_Index N
                ngen = NE - ck * NE_chunk_size;
           VERBOSELVL_PRINT(2, "  chunk %ld/%ld  %ld %ld\n", (long)ck+1, (long)nchunks, (long)NE, (long)ngen);
           edge_list_64 ((int64_t*)I, (int64_t*)J, V, ck*NE_chunk_size, ngen);
-          info = GrB_Matrix_build (tmpA, I, J, V, ngen, GrB_FIRST_UINT64);
-          if (info != GrB_SUCCESS) goto done;
-          info = GrB_eWiseAdd (*A, GrB_NULL, GrB_NULL, GrB_FIRST_UINT64, *A, tmpA, GrB_DESC_R);
-          if (info != GrB_SUCCESS) goto done;
-          GrB_Matrix_clear (tmpA);
+          if (nchunks > 1) {
+            info = GrB_Matrix_build (tmpA, I, J, V, ngen, GrB_FIRST_UINT64);
+            if (info != GrB_SUCCESS) goto done;
+            info = GrB_eWiseAdd (*A, GrB_NULL, GrB_NULL, GrB_FIRST_UINT64, *A, tmpA, GrB_DESC_R);
+            if (info != GrB_SUCCESS) goto done;
+            GrB_Matrix_clear (tmpA);
+          } else {
+            info = GrB_Matrix_build (*A, I, J, V, ngen, GrB_FIRST_UINT64);
+          }
      }
      
 done:
