@@ -15,7 +15,10 @@
 
 #include "cmdline.h"
 
+#include "compat.h"
 #include "globals.h"
+
+extern struct gengetopt_args_info args;
 
 static const char filetag[] = "mxmtimer";
 static const char reverse_filetag[] = "remitmxm";

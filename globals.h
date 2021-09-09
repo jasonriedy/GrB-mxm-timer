@@ -13,16 +13,6 @@
 #define VERBOSELVL_PRINT(lvl, ...) do { if (verbose >= lvl) { fprintf (stderr, __VA_ARGS__); fflush (stderr); } } while (0)
 #define VERBOSE_PRINT(...) VERBOSELVL_PRINT(1, __VA_ARGS__)
 
-#if defined(__CILK)
-#include <cilk/cilk.h>
-#define parfor cilk_for
-#elif defined(_OPENMP)
-#include <omp.h>
-#define parfor _Pragma(omp parallel for) for
-#else
-#define parfor for
-#endif
-
 #if !defined(SCALE_MAX)
 #define SCALE_MAX 40
 #elif SCALE_MAX > 53

@@ -45,7 +45,7 @@ void hooks_set_active_region(const char* name)
     hooks_active_region = name;
 }
 
-static bool region_is_active(const char* name)
+bool region_is_active(const char* name)
 {
     if (hooks_active_region == NULL) return true;
     else { return (bool)!strcmp(name, hooks_active_region); }

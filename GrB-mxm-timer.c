@@ -9,6 +9,7 @@
 #include <GraphBLAS.h>
 #include <LucataGraphBLAS.h>
 
+#include "compat.h"
 #include "cmdline.h"
 
 #include "globals.h"
@@ -107,7 +108,7 @@ timed_loop (GrB_Matrix B, GrB_Matrix A, const int nhop)
     return info;
 }
 
-static struct gengetopt_args_info args;
+struct gengetopt_args_info args;
 
 int
 main (int argc, char **argv)
