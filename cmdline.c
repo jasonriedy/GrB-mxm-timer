@@ -43,6 +43,10 @@ const char *gengetopt_args_info_help[] = {
   "  -N, --noisefact=FLOAT    Noise factor on each recursion  (default=`0.1')",
   "      --run-powers         Run powers of the generated A matrix rather than\n                             applying A to B  (default=off)",
   "",
+  "  -f, --filename=STRING    Filename to read/write for a CSR format",
+  "      --dump               Write a file to read  (default=off)",
+  "      --binary             File is in binary format  (default=off)",
+  "",
   "  -c, --b-ncols=INT        Number of columns in B  (default=`16')",
   "  -C, --b-used-ncols=INT   Number of columns actually used in the initial B\n                             (default=`1')",
   "  -E, --b-nents-col=INT    Number of entries per column in the initial B\n                             (default=`1')",
@@ -88,6 +92,9 @@ void clear_given (struct gengetopt_args_info *args_info)
   args_info->B_given = 0 ;
   args_info->noisefact_given = 0 ;
   args_info->run_powers_given = 0 ;
+  args_info->filename_given = 0 ;
+  args_info->dump_given = 0 ;
+  args_info->binary_given = 0 ;
   args_info->b_ncols_given = 0 ;
   args_info->b_used_ncols_given = 0 ;
   args_info->b_nents_col_given = 0 ;
@@ -114,6 +121,10 @@ void clear_args (struct gengetopt_args_info *args_info)
   args_info->noisefact_arg = 0.1;
   args_info->noisefact_orig = NULL;
   args_info->run_powers_flag = 0;
+  args_info->filename_arg = NULL;
+  args_info->filename_orig = NULL;
+  args_info->dump_flag = 0;
+  args_info->binary_flag = 0;
   args_info->b_ncols_arg = 16;
   args_info->b_ncols_orig = NULL;
   args_info->b_used_ncols_arg = 1;
@@ -145,15 +156,18 @@ void init_args_info(struct gengetopt_args_info *args_info)
   args_info->B_help = gengetopt_args_info_help[5] ;
   args_info->noisefact_help = gengetopt_args_info_help[6] ;
   args_info->run_powers_help = gengetopt_args_info_help[7] ;
-  args_info->b_ncols_help = gengetopt_args_info_help[9] ;
-  args_info->b_used_ncols_help = gengetopt_args_info_help[10] ;
-  args_info->b_nents_col_help = gengetopt_args_info_help[11] ;
-  args_info->khops_help = gengetopt_args_info_help[13] ;
-  args_info->NE_chunk_size_help = gengetopt_args_info_help[15] ;
-  args_info->verbose_help = gengetopt_args_info_help[16] ;
-  args_info->no_time_A_help = gengetopt_args_info_help[17] ;
-  args_info->no_time_B_help = gengetopt_args_info_help[18] ;
-  args_info->no_time_iter_help = gengetopt_args_info_help[19] ;
+  args_info->filename_help = gengetopt_args_info_help[9] ;
+  args_info->dump_help = gengetopt_args_info_help[10] ;
+  args_info->binary_help = gengetopt_args_info_help[11] ;
+  args_info->b_ncols_help = gengetopt_args_info_help[13] ;
+  args_info->b_used_ncols_help = gengetopt_args_info_help[14] ;
+  args_info->b_nents_col_help = gengetopt_args_info_help[15] ;
+  args_info->khops_help = gengetopt_args_info_help[17] ;
+  args_info->NE_chunk_size_help = gengetopt_args_info_help[19] ;
+  args_info->verbose_help = gengetopt_args_info_help[20] ;
+  args_info->no_time_A_help = gengetopt_args_info_help[21] ;
+  args_info->no_time_B_help = gengetopt_args_info_help[22] ;
+  args_info->no_time_iter_help = gengetopt_args_info_help[23] ;
   
 }
 
@@ -248,6 +262,8 @@ cmdline_parser_release (struct gengetopt_args_info *args_info)
   free_string_field (&(args_info->A_orig));
   free_string_field (&(args_info->B_orig));
   free_string_field (&(args_info->noisefact_orig));
+  free_string_field (&(args_info->filename_arg));
+  free_string_field (&(args_info->filename_orig));
   free_string_field (&(args_info->b_ncols_orig));
   free_string_field (&(args_info->b_used_ncols_orig));
   free_string_field (&(args_info->b_nents_col_orig));
@@ -301,6 +317,12 @@ cmdline_parser_dump(FILE *outfile, struct gengetopt_args_info *args_info)
     write_into_file(outfile, "noisefact", args_info->noisefact_orig, 0);
   if (args_info->run_powers_given)
     write_into_file(outfile, "run-powers", 0, 0 );
+  if (args_info->filename_given)
+    write_into_file(outfile, "filename", args_info->filename_orig, 0);
+  if (args_info->dump_given)
+    write_into_file(outfile, "dump", 0, 0 );
+  if (args_info->binary_given)
+    write_into_file(outfile, "binary", 0, 0 );
   if (args_info->b_ncols_given)
     write_into_file(outfile, "b-ncols", args_info->b_ncols_orig, 0);
   if (args_info->b_used_ncols_given)
@@ -591,6 +613,9 @@ cmdline_parser_internal (
         { "B",	1, NULL, 'B' },
         { "noisefact",	1, NULL, 'N' },
         { "run-powers",	0, NULL, 0 },
+        { "filename",	1, NULL, 'f' },
+        { "dump",	0, NULL, 0 },
+        { "binary",	0, NULL, 0 },
         { "b-ncols",	1, NULL, 'c' },
         { "b-used-ncols",	1, NULL, 'C' },
         { "b-nents-col",	1, NULL, 'E' },
@@ -603,7 +628,7 @@ cmdline_parser_internal (
         { 0,  0, 0, 0 }
       };
 
-      c = getopt_long (argc, argv, "hVs:e:A:B:N:c:C:E:k:", long_options, &option_index);
+      c = getopt_long (argc, argv, "hVs:e:A:B:N:f:c:C:E:k:", long_options, &option_index);
 
       if (c == -1) break;	/* Exit from `while (1)' loop.  */
 
@@ -679,6 +704,18 @@ cmdline_parser_internal (
             goto failure;
         
           break;
+        case 'f':	/* Filename to read/write for a CSR format.  */
+        
+        
+          if (update_arg( (void *)&(args_info->filename_arg), 
+               &(args_info->filename_orig), &(args_info->filename_given),
+              &(local_args_info.filename_given), optarg, 0, 0, ARG_STRING,
+              check_ambiguity, override, 0, 0,
+              "filename", 'f',
+              additional_error))
+            goto failure;
+        
+          break;
         case 'c':	/* Number of columns in B.  */
         
         
@@ -737,6 +774,30 @@ cmdline_parser_internal (
             if (update_arg((void *)&(args_info->run_powers_flag), 0, &(args_info->run_powers_given),
                 &(local_args_info.run_powers_given), optarg, 0, 0, ARG_FLAG,
                 check_ambiguity, override, 1, 0, "run-powers", '-',
+                additional_error))
+              goto failure;
+          
+          }
+          /* Write a file to read.  */
+          else if (strcmp (long_options[option_index].name, "dump") == 0)
+          {
+          
+          
+            if (update_arg((void *)&(args_info->dump_flag), 0, &(args_info->dump_given),
+                &(local_args_info.dump_given), optarg, 0, 0, ARG_FLAG,
+                check_ambiguity, override, 1, 0, "dump", '-',
+                additional_error))
+              goto failure;
+          
+          }
+          /* File is in binary format.  */
+          else if (strcmp (long_options[option_index].name, "binary") == 0)
+          {
+          
+          
+            if (update_arg((void *)&(args_info->binary_flag), 0, &(args_info->binary_given),
+                &(local_args_info.binary_given), optarg, 0, 0, ARG_FLAG,
+                check_ambiguity, override, 1, 0, "binary", '-',
                 additional_error))
               goto failure;
           

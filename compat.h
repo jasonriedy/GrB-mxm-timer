@@ -10,7 +10,7 @@
 #define _XOPEN_SOURCE 600
 #endif
 #define _XOPEN_SOURCE_EXTENDED
-#define _DEFAULT_SOURCE
+//#define _DEFAULT_SOURCE
 
 #if __STDC_VERSION__ >= 199901L
 #include <inttypes.h>

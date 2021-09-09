@@ -2,7 +2,6 @@
 #include <limits.h>
 #include <inttypes.h>
 
-#include <stdio.h>
 #include <assert.h>
 
 #include "compat.h"
@@ -63,8 +62,6 @@ loc_to_idx_small (const int64_t k)
 {
   int64_t a = k * Zinv;
   int64_t b = a % NE;
-  /* fprintf (stderr, "%ld -> %ld -> %ld     %ld\n", k, a, b, (long)NE); */
-  //return (k*Zinv)%NE;
   return b;
 }
 
@@ -105,9 +102,9 @@ edge_list_64 (int64_t * restrict i, int64_t * restrict j, uint64_t * restrict w,
       const int64_t kp = ne_begin + t;
       const int64_t k = loc_to_idx_small (kp);
       uint8_t w_scalar;
-      //if (t % (16*1024) == 0) fprintf (stderr, "t %ld / %ld\n", (long)t, (long)ne_len);
-      /* fprintf (stderr, "augh [%ld/%ld] %ld -> %ld\n", (long)t, (long)ne_len, (long)kp, (long)k); */
       make_edge (k, &i[t], &j[t], &w_scalar);
+      assert (i[t] < NV);
+      assert (j[t] < NV);
       w[t] = w_scalar;
     }
   } else {
@@ -116,6 +113,8 @@ edge_list_64 (int64_t * restrict i, int64_t * restrict j, uint64_t * restrict w,
       const int64_t k = loc_to_idx_big (kp);
       uint8_t w_scalar;
       make_edge (k, &i[t], &j[t], &w_scalar);
+      assert (i[t] < NV);
+      assert (j[t] < NV);
       w[t] = w_scalar;
     }
   }

@@ -12,6 +12,12 @@ option "run-powers" - "Run powers of the generated A matrix rather than applying
 
 text ""
 
+option "filename" f "Filename to read/write for a CSR format" string optional
+option "dump" - "Write a file to read" flag off
+option "binary" - "File is in binary format" flag off
+
+text ""
+
 option "b-ncols" c "Number of columns in B" int optional default="16"
 option "b-used-ncols" C "Number of columns actually used in the initial B" int optional default="1"
 option "b-nents-col" E "Number of entries per column in the initial B" int optional default="1"

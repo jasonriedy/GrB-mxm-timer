@@ -56,6 +56,13 @@ struct gengetopt_args_info
   const char *noisefact_help; /**< @brief Noise factor on each recursion help description.  */
   int run_powers_flag;	/**< @brief Run powers of the generated A matrix rather than applying A to B (default=off).  */
   const char *run_powers_help; /**< @brief Run powers of the generated A matrix rather than applying A to B help description.  */
+  char * filename_arg;	/**< @brief Filename to read/write for a CSR format.  */
+  char * filename_orig;	/**< @brief Filename to read/write for a CSR format original value given at command line.  */
+  const char *filename_help; /**< @brief Filename to read/write for a CSR format help description.  */
+  int dump_flag;	/**< @brief Write a file to read (default=off).  */
+  const char *dump_help; /**< @brief Write a file to read help description.  */
+  int binary_flag;	/**< @brief File is in binary format (default=off).  */
+  const char *binary_help; /**< @brief File is in binary format help description.  */
   int b_ncols_arg;	/**< @brief Number of columns in B (default='16').  */
   char * b_ncols_orig;	/**< @brief Number of columns in B original value given at command line.  */
   const char *b_ncols_help; /**< @brief Number of columns in B help description.  */
@@ -89,6 +96,9 @@ struct gengetopt_args_info
   unsigned int B_given ;	/**< @brief Whether B was given.  */
   unsigned int noisefact_given ;	/**< @brief Whether noisefact was given.  */
   unsigned int run_powers_given ;	/**< @brief Whether run-powers was given.  */
+  unsigned int filename_given ;	/**< @brief Whether filename was given.  */
+  unsigned int dump_given ;	/**< @brief Whether dump was given.  */
+  unsigned int binary_given ;	/**< @brief Whether binary was given.  */
   unsigned int b_ncols_given ;	/**< @brief Whether b-ncols was given.  */
   unsigned int b_used_ncols_given ;	/**< @brief Whether b-used-ncols was given.  */
   unsigned int b_nents_col_given ;	/**< @brief Whether b-nents-col was given.  */
