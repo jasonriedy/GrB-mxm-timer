@@ -26,6 +26,7 @@ make_A (GrB_Matrix *A, const GrB_Index NV, const GrB_Index NE, const GrB_Index N
     GrB_Info info = GrB_SUCCESS;
 
     GrB_Matrix tmpA;
+    int used_tmpA = 0;
     GrB_Index *I = NULL, *J = NULL;
     uint64_t *V = NULL;
     const GrB_Index nchunks = (NE + NE_chunk_size - 1)/NE_chunk_size;
@@ -41,6 +42,12 @@ make_A (GrB_Matrix *A, const GrB_Index NV, const GrB_Index NE, const GrB_Index N
     V = malloc (NE_chunk_size * sizeof (*V));
     if (!I || !J || !V) { info = GrB_OUT_OF_MEMORY; goto done; }
 
+    if (nchunks > 1) {
+        info = GrB_Matrix_new (&tmpA, GrB_UINT64, NV, NV);
+        if (info != GrB_SUCCESS) goto done;
+        used_tmpA = 1;
+    }
+
     for (GrB_Index ck = 0; ck < nchunks; ++ck) {
         GrB_Index ngen = NE_chunk_size;
         if (ck * NE_chunk_size + ngen > NE)
@@ -48,14 +55,13 @@ make_A (GrB_Matrix *A, const GrB_Index NV, const GrB_Index NE, const GrB_Index N
         VERBOSELVL_PRINT(2, "  chunk %ld/%ld  %ld %ld\n", (long)ck+1, (long)nchunks, (long)NE, (long)ngen);
         edge_list_64 ((int64_t*)I, (int64_t*)J, V, ck*NE_chunk_size, ngen);
         if (nchunks > 1) {
-            info = GrB_Matrix_new (&tmpA, GrB_UINT64, NV, NV);
-            if (info != GrB_SUCCESS) return info;
             info = GrB_Matrix_build (tmpA, I, J, V, ngen, GrB_FIRST_UINT64);
             if (info != GrB_SUCCESS) goto done;
             info = GrB_eWiseAdd (*A, GrB_NULL, GrB_NULL, GrB_FIRST_UINT64, *A, tmpA, GrB_DESC_R);
             if (info != GrB_SUCCESS) goto done;
-            GrB_free (&tmpA);
+            GrB_Matrix_clear (tmpA);
         } else {
+            used_tmpA = 0;
             info = GrB_Matrix_build (*A, I, J, V, ngen, GrB_FIRST_UINT64);
         }
     }
@@ -64,7 +70,7 @@ make_A (GrB_Matrix *A, const GrB_Index NV, const GrB_Index NE, const GrB_Index N
     if (V) free(V);
     if (J) free(J);
     if (I) free(I);
-    GrB_free (&tmpA);
+    if (used_tmpA) GrB_free (&tmpA);
     return info;
 }
 
