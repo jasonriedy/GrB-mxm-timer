@@ -1,6 +1,28 @@
 #if !defined(GLOBALS_HEADER_)
 #define GLOBALS_HEADER_
 
+#if defined(NDEBUG)
+#define DEBUG_PRINT(...)
+#else
+#define DEBUG_PRINT(...) do { fprintf (stderr, __VA_ARGS__); } while (0)
+#endif
+
+#define DIE(...) do { fprintf (stderr, __VA_ARGS__); exit (EXIT_FAILURE); } while (0)
+#define DIE_PERROR(...) do { fprintf (stderr, __VA_ARGS__); perror (""); exit (EXIT_FAILURE); } while (0)
+
+#define VERBOSELVL_PRINT(lvl, ...) do { if (verbose >= lvl) { fprintf (stderr, __VA_ARGS__); fflush (stderr); } } while (0)
+#define VERBOSE_PRINT(...) VERBOSELVL_PRINT(1, __VA_ARGS__)
+
+#if defined(__CILK)
+#include <cilk/cilk.h>
+#define parfor cilk_for
+#elif defined(_OPENMP)
+#include <omp.h>
+#define parfor _Pragma(omp parallel for) for
+#else
+#define parfor for
+#endif
+
 #if !defined(SCALE_MAX)
 #define SCALE_MAX 40
 #elif SCALE_MAX > 53

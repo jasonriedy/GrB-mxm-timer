@@ -6,14 +6,6 @@
 #include <stdint.h>
 #include <errno.h>
 
-#if defined(__CILK)
-#include <cilk/cilk.h>
-#define parfor cilk_for
-#elif defined(_OPENMP)
-#define parfor _Pragma(omp parallel for) for
-#else
-#define parfor for
-#endif
 #include <GraphBLAS.h>
 
 #include "cmdline.h"
@@ -24,15 +16,6 @@
 #include "hooks.h"
 
 int verbose = 0;
-
-#if defined(NDEBUG)
-#define DEBUG_PRINT(...)
-#else
-#define DEBUG_PRINT(...) do { fprintf (stderr, __VA_ARGS__); } while (0)
-#endif
-
-#define VERBOSELVL_PRINT(lvl, ...) do { if (verbose >= lvl) { fprintf (stderr, __VA_ARGS__); fflush (stderr); } } while (0)
-#define VERBOSE_PRINT(...) VERBOSELVL_PRINT(1, __VA_ARGS__)
 
 static GrB_Info
 make_A (GrB_Matrix *A, const GrB_Index NV, const GrB_Index NE, const GrB_Index NE_chunk_size)
