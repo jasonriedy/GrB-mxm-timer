@@ -296,6 +296,8 @@ main (int argc, char **argv)
         }
     }
 
+    if (f) fclose (f);
+
     VERBOSE_PRINT("DONE\n");
     GrB_finalize ();
 }
