@@ -260,8 +260,9 @@ make_file_from_mtx (GrB_Matrix A, const char *name, FILE *f)
         if (info != GrB_SUCCESS)
             DIE("Export of %s failed: %ld\n", name, (long)info);
 
-        if (is_uniformed)
-            DIE("%s is wearing a funny hat.\n", name);
+        /* Not only is this not implemented, it's wrong. */
+        /* if (is_uniformed) */
+        /*     DIE("%s is wearing a funny hat.\n", name); */
         if (jumbled)
             DIE("Assumed %s is sorted and it ain't.", name);
 
@@ -346,8 +347,9 @@ make_binfile_from_mtx (GrB_Matrix A, const char *name, FILE *f)
         if (info != GrB_SUCCESS)
             DIE("Export of %s failed: %ld\n", name, (long)info);
 
-        if (is_uniformed)
-            DIE("%s is wearing a funny hat.\n", name);
+        /* Not only is this not implemented, it's wrong. */
+        /* if (is_uniformed) */
+        /*     DIE("%s is wearing a funny hat.\n", name); */
         if (jumbled)
             DIE("Assumed %s is sorted and it ain't.", name);
 
