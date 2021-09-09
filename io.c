@@ -153,7 +153,7 @@ make_mtx_from_binfile (GrB_Matrix *A_out, GrB_Index * NV_out, GrB_Index * NE_out
     GrB_Index *colind = NULL;
     uint64_t *val = NULL;
 
-    fread (tag, 1, 9, f); // File includes final zero, makes string happy.
+    fread (tag, 8, 1, f);
     if (!strcmp(tag, reverse_filetag))
         needs_bs = true;
     else if (strcmp(tag, filetag))
@@ -360,7 +360,7 @@ make_binfile_from_mtx (GrB_Matrix A, const char *name, FILE *f)
     GrB_Index nnz = off[nrows];
     DEBUG_PRINT("Writing name %s  dims %ld %ld %ld\n", name, (long)nrows, (long)ncols, (long)nnz);
 
-    fwrite (filetag, 1, sizeof(filetag), f);
+    fwrite (filetag, 8, 1, f);
     uint64_t namelen = strlen(name)+1;
     fwrite (&namelen, 8, 1, f);
     fwrite (name, 1, namelen, f);
