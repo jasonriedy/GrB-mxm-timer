@@ -11,7 +11,9 @@
 #include <assert.h>
 
 #include <GraphBLAS.h>
+#if !defined(USE_SUITESPARSE)
 #include <LucataGraphBLAS.h>
+#endif
 
 #include "cmdline.h"
 
@@ -64,7 +66,6 @@ make_mtx_from_file (GrB_Matrix *A_out, GrB_Index * NV_out, GrB_Index * NE_out, F
         fscanf (f, "%ld %ld %ld", &nrl, &ncl, &nvl);
         nrows = nrl; ncols = ncl; nvals = nvl;
         DEBUG_PRINT("Read %s dims %ld %ld %ld\n", name, nrl, ncl, nvl);
-        DEBUG_PRINT("Expected size %g GiB\n", ((nrows+1 + 2*nvals) * sizeof(int64_t)) / ((double)(1<<30)));
     }
 
     if (NV_out) *NV_out = nrows;
@@ -100,14 +101,20 @@ make_mtx_from_file (GrB_Matrix *A_out, GrB_Index * NV_out, GrB_Index * NE_out, F
 
     GrB_Matrix A;
 
-    info = LGB_Matrix_import_CSR_UINT64 (&A, GrB_UINT64, nrows, ncols, off, colind, val, 1);
+#if !defined(USE_SUITESPARSE)
+    info = LGB_Matrix_import_CSR_UINT64 (&A, GrB_UINT64, nrows, ncols, off, colind, val, 0);
+#else
+    info = GxB_Matrix_import_CSR (&A, GrB_UINT64, nrows, ncols, &off, &colind, (void**)&val, (nrows+1)*sizeof(GrB_Index), nvals*sizeof(GrB_Index), nvals*sizeof(uint64_t), 0, 0, GrB_NULL);
+#endif
 
     if (info != GrB_SUCCESS)
         DIE("Importing matrix %s failed: %ld\n", name, (long)info);
 
     *A_out = A;
 
+#if !defined(USE_SUITESPARSE)
     free (val); free (colind); free (off);
+#endif
 
     return GrB_SUCCESS;
 }
@@ -166,7 +173,6 @@ make_mtx_from_binfile (GrB_Matrix *A_out, GrB_Index * NV_out, GrB_Index * NE_out
         nrows = ensure_byteorder64(dims[0], needs_bs);
         ncols = ensure_byteorder64(dims[1], needs_bs);
         nvals = ensure_byteorder64(dims[2], needs_bs);
-        DEBUG_PRINT("Expected size %g GiB\n", ((nrows+1 + 2*nvals) * sizeof(int64_t)) / ((double)(1<<30)));
     }
 
     if (NV_out) *NV_out = nrows;
@@ -205,14 +211,20 @@ make_mtx_from_binfile (GrB_Matrix *A_out, GrB_Index * NV_out, GrB_Index * NE_out
 
     GrB_Matrix A;
 
-    info = LGB_Matrix_import_CSR_UINT64 (&A, GrB_UINT64, nrows, ncols, off, colind, val, 1);
+#if !defined(USE_SUITESPARSE)
+    info = LGB_Matrix_import_CSR_UINT64 (&A, GrB_UINT64, nrows, ncols, off, colind, val, 0);
+#else
+    info = GxB_Matrix_import_CSR (&A, GrB_UINT64, nrows, ncols, &off, &colind, (void**)&val, (nrows+1)*sizeof(GrB_Index), nvals*sizeof(GrB_Index), nvals*sizeof(uint64_t), 0, 0, GrB_NULL);
+#endif
 
     if (info != GrB_SUCCESS)
         DIE ("Importing matrix %s failed: %ld\n", name, (long)info);
 
     *A_out = A;
 
+#if !defined(USE_SUITESPARSE)
     free (val); free (colind); free (off);
+#endif
 
     return GrB_SUCCESS;
 }
@@ -227,10 +239,35 @@ make_file_from_mtx (GrB_Matrix A, const char *name, FILE *f)
     GrB_Index *colind = NULL;
     uint64_t *val = NULL;
 
+#if !defined(USE_SUITESPARSE)
     info = LGB_Matrix_export_CSR_UINT64 (A, NULL, &nrows, &ncols, &off, &colind, &val, NULL);
 
     if (info != GrB_SUCCESS)
         DIE("Export of %s failed: %ld\n", name, (long)info);
+#else
+    {
+        GrB_Matrix dupA;
+        info = GrB_Matrix_dup (&dupA, A);
+        if (info != GrB_SUCCESS)
+            DIE("Duplicating matrix %s: %ld\n", name, (long)info);
+
+        GrB_Type type;
+        GrB_Index off_size, colind_size, val_size;
+        bool is_uniformed;
+        bool jumbled;
+
+        info = GxB_Matrix_export_CSR (&dupA, &type, &nrows, &ncols, &off, &colind, (void**)&val, &off_size, &colind_size, &val_size, &is_uniformed, &jumbled, GrB_NULL);
+        if (info != GrB_SUCCESS)
+            DIE("Export of %s failed: %ld\n", name, (long)info);
+
+        if (is_uniformed)
+            DIE("%s is wearing a funny hat.\n", name);
+        if (jumbled)
+            DIE("Assumed %s is sorted and it ain't.", name);
+
+        GrB_free (&dupA);
+    }
+#endif
 
     GrB_Index nnz = off[nrows];
     DEBUG_PRINT("Writing name %s  dims %ld %ld %ld\n", name, (long)nrows, (long)ncols, (long)nnz);
@@ -288,10 +325,35 @@ make_binfile_from_mtx (GrB_Matrix A, const char *name, FILE *f)
     GrB_Index *colind = NULL;
     uint64_t *val = NULL;
 
+#if !defined(USE_SUITESPARSE)
     info = LGB_Matrix_export_CSR_UINT64 (A, NULL, &nrows, &ncols, &off, &colind, &val, NULL);
 
     if (info != GrB_SUCCESS)
         DIE("Export of %s failed: %ld\n", name, (long)info);
+#else
+    {
+        GrB_Matrix dupA;
+        info = GrB_Matrix_dup (&dupA, A);
+        if (info != GrB_SUCCESS)
+            DIE("Duplicating matrix %s: %ld\n", name, (long)info);
+
+        GrB_Type type;
+        GrB_Index off_size, colind_size, val_size;
+        bool is_uniformed;
+        bool jumbled;
+
+        info = GxB_Matrix_export_CSR (&dupA, &type, &nrows, &ncols, &off, &colind, (void**)&val, &off_size, &colind_size, &val_size, &is_uniformed, &jumbled, GrB_NULL);
+        if (info != GrB_SUCCESS)
+            DIE("Export of %s failed: %ld\n", name, (long)info);
+
+        if (is_uniformed)
+            DIE("%s is wearing a funny hat.\n", name);
+        if (jumbled)
+            DIE("Assumed %s is sorted and it ain't.", name);
+
+        GrB_free (&dupA);
+    }
+#endif
 
     GrB_Index nnz = off[nrows];
     DEBUG_PRINT("Writing name %s  dims %ld %ld %ld\n", name, (long)nrows, (long)ncols, (long)nnz);

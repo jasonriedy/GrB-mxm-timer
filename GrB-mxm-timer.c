@@ -7,7 +7,9 @@
 #include <errno.h>
 
 #include <GraphBLAS.h>
+#if !defined(USE_SUITESPARSE)
 #include <LucataGraphBLAS.h>
+#endif
 
 #include "compat.h"
 #include "cmdline.h"
@@ -110,7 +112,11 @@ timed_loop (GrB_Matrix B, GrB_Matrix A, const int nhop)
         info = GrB_mxm (B, GrB_NULL, GrB_NULL, GxB_MIN_FIRST_FP64, A, B, GrB_DESC_R);
         if (info != GrB_SUCCESS) return info;
     }
+#if !defined(USE_SUITESPARSE)
     GrB_wait();
+#else
+    GrB_wait(&B);
+#endif
     return info;
 }
 
