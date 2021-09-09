@@ -30,11 +30,9 @@ make_A (GrB_Matrix *A, const GrB_Index NV, const GrB_Index NE, const GrB_Index N
     uint64_t *V = NULL;
     const GrB_Index nchunks = (NE + NE_chunk_size - 1)/NE_chunk_size;
 
-    DEBUG_PRINT("new A %ld\n", (long)NV);
-    info = GrB_Matrix_new (&tmpA, GrB_UINT64, NV, NV);
-    if (info != GrB_SUCCESS) return info;
+    DEBUG_PRINT("Requested total size %g GiB\n", (3 * NE * sizeof(int64_t)) / ((double)(1<<30)));
 
-    DEBUG_PRINT("new Atmp\n");
+    DEBUG_PRINT("new A %ld\n", (long)NV);
     info = GrB_Matrix_new (A, GrB_UINT64, NV, NV);
     if (info != GrB_SUCCESS) goto done;
 
@@ -50,11 +48,13 @@ make_A (GrB_Matrix *A, const GrB_Index NV, const GrB_Index NE, const GrB_Index N
         VERBOSELVL_PRINT(2, "  chunk %ld/%ld  %ld %ld\n", (long)ck+1, (long)nchunks, (long)NE, (long)ngen);
         edge_list_64 ((int64_t*)I, (int64_t*)J, V, ck*NE_chunk_size, ngen);
         if (nchunks > 1) {
+            info = GrB_Matrix_new (&tmpA, GrB_UINT64, NV, NV);
+            if (info != GrB_SUCCESS) return info;
             info = GrB_Matrix_build (tmpA, I, J, V, ngen, GrB_FIRST_UINT64);
             if (info != GrB_SUCCESS) goto done;
             info = GrB_eWiseAdd (*A, GrB_NULL, GrB_NULL, GrB_FIRST_UINT64, *A, tmpA, GrB_DESC_R);
             if (info != GrB_SUCCESS) goto done;
-            GrB_Matrix_clear (tmpA);
+            GrB_free (&tmpA);
         } else {
             info = GrB_Matrix_build (*A, I, J, V, ngen, GrB_FIRST_UINT64);
         }
@@ -171,6 +171,8 @@ main (int argc, char **argv)
 
     GrB_Info info;
     GrB_Matrix A, Bini, B;
+    GrB_Index nvals_A = 0;
+    GrB_Index nvals_B = 0;
 
     info = GrB_init (GrB_NONBLOCKING);
     if (info != GrB_SUCCESS)
@@ -214,6 +216,8 @@ main (int argc, char **argv)
     if (info != GrB_SUCCESS)
         DIE("Error making A: %ld\n", (long)info);
 
+    GrB_Matrix_nvals (&nvals_A, A);
+
     VERBOSE_PRINT("%g ms\n", A_time);
 
     if (!args.run_powers_flag) {
@@ -250,6 +254,7 @@ main (int argc, char **argv)
             DIE("Error making Bini: %ld\n", (long)info);
 
         VERBOSE_PRINT("%g ms\n", Bini_time);
+        GrB_Matrix_nvals (&nvals_B, Bini);
     }
 
     if (!f || !args.dump_flag) {
@@ -264,6 +269,8 @@ main (int argc, char **argv)
             VERBOSE_PRINT("Running hop #%d for %ld steps... ", k, khops[k]);
             if (!args.no_time_iter_flag) {
                 hooks_set_attr_i64 ("khop", khops[k]);
+                hooks_set_attr_i64 ("nvals_A", nvals_A);
+                hooks_set_attr_i64 ("nvals_B", nvals_B);
                 hooks_region_begin ("Iterating");
             }
 

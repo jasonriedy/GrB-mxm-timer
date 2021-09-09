@@ -64,6 +64,7 @@ make_mtx_from_file (GrB_Matrix *A_out, GrB_Index * NV_out, GrB_Index * NE_out, F
         fscanf (f, "%ld %ld %ld", &nrl, &ncl, &nvl);
         nrows = nrl; ncols = ncl; nvals = nvl;
         DEBUG_PRINT("Read %s dims %ld %ld %ld\n", name, nrl, ncl, nvl);
+        DEBUG_PRINT("Expected size %g GiB\n", ((nrows+1 + 2*nvals) * sizeof(int64_t)) / ((double)(1<<30)));
     }
 
     if (NV_out) *NV_out = nrows;
@@ -165,6 +166,7 @@ make_mtx_from_binfile (GrB_Matrix *A_out, GrB_Index * NV_out, GrB_Index * NE_out
         nrows = ensure_byteorder64(dims[0], needs_bs);
         ncols = ensure_byteorder64(dims[1], needs_bs);
         nvals = ensure_byteorder64(dims[2], needs_bs);
+        DEBUG_PRINT("Expected size %g GiB\n", ((nrows+1 + 2*nvals) * sizeof(int64_t)) / ((double)(1<<30)));
     }
 
     if (NV_out) *NV_out = nrows;
