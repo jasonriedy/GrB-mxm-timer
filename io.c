@@ -8,6 +8,10 @@
 #include <stdbool.h>
 #include <errno.h>
 
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+
 #include <assert.h>
 
 #include <GraphBLAS.h>
@@ -25,29 +29,30 @@ extern struct gengetopt_args_info args;
 static const char filetag[] = "mxmtimer";
 static const char reverse_filetag[] = "remitmxm";
 
-FILE*
+int
 open_filename (const char* filename) {
-    FILE *f;
+    int f;
     if (args.dump_flag && args.run_powers_flag)
         DIE("Dumping not compatible with running the powers kernel\n");
 
+    errno = 0;
     if (args.dump_flag) {
         if (!strcmp(filename, "-"))
             DIE("Cannot write to stdout");
-        f = fopen (args.filename_arg, "w+");
+        f = open (args.filename_arg, O_CREAT|O_WRONLY|O_TRUNC, 0666); //fopen (args.filename_arg, "w+");
     } else {
         if (!strcmp(filename, "-"))
-            f = stdin;
+            f = dup(0); // stdin
         else
-            f = fopen (args.filename_arg, "r");
+            f = open (args.filename_arg, O_RDONLY); //fopen (args.filename_arg, "r");
     }
-    if (!f)
+    if (errno)
         DIE_PERROR("Error opening \"%s\": ", args.filename_arg);
     return f;
 }
 
 GrB_Info
-make_mtx_from_file (GrB_Matrix *A_out, GrB_Index * NV_out, GrB_Index * NE_out, FILE *f)
+make_mtx_from_file (GrB_Matrix *A_out, GrB_Index * NV_out, GrB_Index * NE_out, int fd)
 {
     GrB_Info info = GrB_SUCCESS;
 
@@ -57,6 +62,11 @@ make_mtx_from_file (GrB_Matrix *A_out, GrB_Index * NV_out, GrB_Index * NE_out, F
     GrB_Index *off = NULL;
     GrB_Index *colind = NULL;
     uint64_t *val = NULL;
+
+    // For text, "reopen" for the f* family.
+    FILE *f = fdopen (fd, "r");
+    if (!f)
+        DIE_PERROR("Cannot move fd %d to FILE*", fd);
 
     fscanf (f, "%s", name);
 
@@ -116,6 +126,8 @@ make_mtx_from_file (GrB_Matrix *A_out, GrB_Index * NV_out, GrB_Index * NE_out, F
     free (val); free (colind); free (off);
 #endif
 
+    fclose (f);
+
     return GrB_SUCCESS;
 }
 
@@ -136,7 +148,7 @@ ensure_byteorder64 (uint64_t x, bool needs_bs)
 }
 
 GrB_Info
-make_mtx_from_binfile (GrB_Matrix *A_out, GrB_Index * NV_out, GrB_Index * NE_out, FILE *f)
+make_mtx_from_binfile (GrB_Matrix *A_out, GrB_Index * NV_out, GrB_Index * NE_out, int fd)
 {
     GrB_Info info = GrB_SUCCESS;
 
@@ -153,22 +165,22 @@ make_mtx_from_binfile (GrB_Matrix *A_out, GrB_Index * NV_out, GrB_Index * NE_out
     GrB_Index *colind = NULL;
     uint64_t *val = NULL;
 
-    fread (tag, 8, 1, f);
+    read (fd, tag, 8);
     if (!strcmp(tag, reverse_filetag))
         needs_bs = true;
     else if (strcmp(tag, filetag))
         DIE("Unrecognized file tag %s\n", tag);
 
-    fread (&namelen, 8, 1, f);
+    read (fd, &namelen, 8);
     if (namelen > sizeof(name))
         DIE("Name too long.\n");
 
-    fread (name, 1, namelen, f);
+    read (fd, name, namelen);
     DEBUG_PRINT("Name: %s\n", name);
 
     {
         uint64_t dims[3];
-        fread (dims, 8, 3, f);
+        read (fd, dims, 8*3);
 
         nrows = ensure_byteorder64(dims[0], needs_bs);
         ncols = ensure_byteorder64(dims[1], needs_bs);
@@ -185,7 +197,7 @@ make_mtx_from_binfile (GrB_Matrix *A_out, GrB_Index * NV_out, GrB_Index * NE_out
         DIE_PERROR("Memory allocation failed reading matrix %s: ", name);
 
     // The nrows+1 offsets
-    fread (off, 8, nrows+1, f);
+    read (fd, off, 8 * (nrows+1));
     if (needs_bs) {
         parfor (size_t k = 0; k <= nrows; ++k)
             off[k] = ensure_byteorder64(off[k], true);
@@ -194,7 +206,7 @@ make_mtx_from_binfile (GrB_Matrix *A_out, GrB_Index * NV_out, GrB_Index * NE_out
         DIE("off[nrows] != nvals reading %s\n", name);
 
     // Now the nvals colinds
-    fread (colind, 8, nvals, f);
+    read (fd, colind, 8 * nvals);
     if (needs_bs) {
         parfor (size_t k = 0; k < nvals; ++k) {
             colind[k] = ensure_byteorder64(colind[k], true);
@@ -204,7 +216,7 @@ make_mtx_from_binfile (GrB_Matrix *A_out, GrB_Index * NV_out, GrB_Index * NE_out
     }
 
     // Finally the nvals values
-    fread (val, 8, nvals, f);
+    read (fd, val, 8 * nvals);
     if (needs_bs)
         parfor (size_t k = 0; k < nvals; ++k)
             val[k] = ensure_byteorder64(val[k], true);
@@ -230,7 +242,7 @@ make_mtx_from_binfile (GrB_Matrix *A_out, GrB_Index * NV_out, GrB_Index * NE_out
 }
 
 void
-make_file_from_mtx (GrB_Matrix A, const char *name, FILE *f)
+make_file_from_mtx (GrB_Matrix A, const char *name, int fd)
 {
     GrB_Info info = GrB_SUCCESS;
 
@@ -238,6 +250,8 @@ make_file_from_mtx (GrB_Matrix A, const char *name, FILE *f)
     GrB_Index *off = NULL;
     GrB_Index *colind = NULL;
     uint64_t *val = NULL;
+
+    FILE *f = fdopen (fd, "w");
 
 #if !defined(USE_SUITESPARSE)
     info = LGB_Matrix_export_CSR_UINT64 (A, NULL, &nrows, &ncols, &off, &colind, &val, NULL);
@@ -314,10 +328,12 @@ make_file_from_mtx (GrB_Matrix A, const char *name, FILE *f)
     free (val);
     free (colind);
     free (off);
+
+    fclose (f);
 }
 
 void
-make_binfile_from_mtx (GrB_Matrix A, const char *name, FILE *f)
+make_binfile_from_mtx (GrB_Matrix A, const char *name, int fd)
 {
     GrB_Info info = GrB_SUCCESS;
 
@@ -360,19 +376,19 @@ make_binfile_from_mtx (GrB_Matrix A, const char *name, FILE *f)
     GrB_Index nnz = off[nrows];
     DEBUG_PRINT("Writing name %s  dims %ld %ld %ld\n", name, (long)nrows, (long)ncols, (long)nnz);
 
-    fwrite (filetag, 8, 1, f);
+    write (fd, filetag, 8);
     uint64_t namelen = strlen(name)+1;
-    fwrite (&namelen, 8, 1, f);
-    fwrite (name, 1, namelen, f);
-    fwrite (&nrows, 1, 8, f);
-    fwrite (&ncols, 1, 8, f);
-    fwrite (&nnz, 1, 8, f);
+    write (fd, &namelen, 8);
+    write (fd, name, namelen);
+    write (fd, &nrows, 8);
+    write (fd, &ncols, 8);
+    write (fd, &nnz, 8);
 
-    fwrite (off, 8, nrows+1, f);
+    write (fd, off, 8 * (nrows+1));
 
     if (nnz > 0) {
-        fwrite (colind, 8, nnz, f);
-        fwrite (val, 8, nnz, f);
+        write (fd, colind, 8 * nnz);
+        write (fd, val, 8 * nnz);
     }
 
     free (val);

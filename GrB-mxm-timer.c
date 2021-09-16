@@ -162,18 +162,9 @@ main (int argc, char **argv)
     }
     DEBUG_PRINT("done parsing hops\n");
 
-    FILE *f = NULL;
-    if (args.filename_arg) {
-        if (args.dump_flag && args.run_powers_flag)
-            DIE("Dumping not compatible with running the powers kernel\n");
-
-        if (args.dump_flag)
-            f = fopen (args.filename_arg, "w+");
-        else
-            f = fopen (args.filename_arg, "r");
-        if (!f)
-            DIE_PERROR("Error opening \"%s\": ", args.filename_arg);
-    }
+    int fd = -1;
+    if (args.filename_arg)
+        fd = open_filename (args.filename_arg);
 
     VERBOSE_PRINT("Starting GrB-mxm-timer\n");
 
@@ -200,14 +191,14 @@ main (int argc, char **argv)
         hooks_region_begin ("Generating matrix A");
     }
 
-    if (!f || args.dump_flag) {
+    if (fd >= 0 || args.dump_flag) {
         info = make_A (&A, NV, NE, args.NE_chunk_size_arg);
     } else {
         DEBUG_PRINT("Reading A ... ");
         if (args.binary_flag)
-            info = make_mtx_from_binfile (&A, &NV, &NE, f);
+            info = make_mtx_from_binfile (&A, &NV, &NE, fd);
         else
-            info = make_mtx_from_file (&A, &NV, &NE, f);
+            info = make_mtx_from_file (&A, &NV, &NE, fd);
         if (info != GrB_SUCCESS)
             DIE("Error reading A: %ld\n", (long)info);
         GrB_Index tmp_ncols;
@@ -216,11 +207,11 @@ main (int argc, char **argv)
             DIE("Read non-square A.\n");
         DEBUG_PRINT("done\n");
     }
-    if (f && args.dump_flag) {
+    if (fd >= 0 && args.dump_flag) {
         if (args.binary_flag)
-            make_binfile_from_mtx (A, "A", f);
+            make_binfile_from_mtx (A, "A", fd);
         else
-            make_file_from_mtx (A, "A", f);
+            make_file_from_mtx (A, "A", fd);
     }
 
     double A_time = 0.0;
@@ -241,23 +232,23 @@ main (int argc, char **argv)
             hooks_region_begin ("Generating Bini");
         }
 
-        if (!f || args.dump_flag) {
+        if (fd >= 0 || args.dump_flag) {
             info = make_B (&Bini, NV, args.b_ncols_arg, args.b_used_ncols_arg, args.b_nents_col_arg);
         } else {
             DEBUG_PRINT("Reading B ... ");
             if (args.binary_flag)
-                info = make_mtx_from_binfile (&Bini, NULL, NULL, f);
+                info = make_mtx_from_binfile (&Bini, NULL, NULL, fd);
             else
-                info = make_mtx_from_file (&Bini, NULL, NULL, f);
+                info = make_mtx_from_file (&Bini, NULL, NULL, fd);
             if (info != GrB_SUCCESS)
                 DIE("Error reading B: %ld\n", (long)info);
             DEBUG_PRINT("done\n");
         }
-        if (f && args.dump_flag) {
+        if (fd >= 0 && args.dump_flag) {
             if (args.binary_flag)
-                make_binfile_from_mtx (Bini, "B", f);
+                make_binfile_from_mtx (Bini, "B", fd);
             else
-                make_file_from_mtx (Bini, "B", f);
+                make_file_from_mtx (Bini, "B", fd);
         }
 
         double Bini_time = 0.0;
@@ -269,7 +260,7 @@ main (int argc, char **argv)
         GrB_Matrix_nvals (&nvals_B, Bini);
     }
 
-    if (!f || !args.dump_flag) {
+    if (fd >= 0 || !args.dump_flag) {
         for (int k = 0; k < n_khops; ++k) {
             if (args.run_powers_flag)
                 info = GrB_Matrix_dup (&B, A);
@@ -296,7 +287,7 @@ main (int argc, char **argv)
         }
     }
 
-    if (f) fclose (f);
+    if (fd >= 0) close (fd);
 
     VERBOSE_PRINT("DONE\n");
     GrB_finalize ();
