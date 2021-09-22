@@ -14,6 +14,8 @@
 
 #include <assert.h>
 
+#include <intrinsics.h>
+
 #include <GraphBLAS.h>
 #if !defined(USE_SUITESPARSE)
 #include <LucataGraphBLAS.h>
@@ -152,6 +154,8 @@ make_mtx_from_binfile (GrB_Matrix *A_out, GrB_Index * NV_out, GrB_Index * NE_out
 {
     GrB_Info info = GrB_SUCCESS;
 
+    fprintf (stderr, "In make_mtx_from_binfile\n");
+
     char tag[9];
     memset (tag, 0, sizeof(tag));
     bool needs_bs = false;
@@ -164,6 +168,8 @@ make_mtx_from_binfile (GrB_Matrix *A_out, GrB_Index * NV_out, GrB_Index * NE_out
     GrB_Index *off = NULL;
     GrB_Index *colind = NULL;
     uint64_t *val = NULL;
+
+    volatile long clock1 = CLOCK();
 
     read (fd, tag, 8);
     if (!strcmp(tag, reverse_filetag))
@@ -190,11 +196,15 @@ make_mtx_from_binfile (GrB_Matrix *A_out, GrB_Index * NV_out, GrB_Index * NE_out
     if (NV_out) *NV_out = nrows;
     if (NE_out) *NE_out = nvals;
 
+    volatile long clock2 = CLOCK();
+
     off = malloc((nrows+1) * sizeof(*off));
     colind = malloc(nvals * sizeof(*colind));
     val = malloc(nvals * sizeof(*val));
     if (!off || !colind || !val)
         DIE_PERROR("Memory allocation failed reading matrix %s: ", name);
+
+    volatile long clock3 = CLOCK();
 
     // The nrows+1 offsets
     read (fd, off, 8 * (nrows+1));
@@ -204,6 +214,8 @@ make_mtx_from_binfile (GrB_Matrix *A_out, GrB_Index * NV_out, GrB_Index * NE_out
     }
     if (off[nrows] != nvals)
         DIE("off[nrows] != nvals reading %s\n", name);
+
+    volatile long clock4 = CLOCK();
 
     // Now the nvals colinds
     read (fd, colind, 8 * nvals);
@@ -215,11 +227,15 @@ make_mtx_from_binfile (GrB_Matrix *A_out, GrB_Index * NV_out, GrB_Index * NE_out
         }
     }
 
+    volatile long clock5 = CLOCK();
+
     // Finally the nvals values
     read (fd, val, 8 * nvals);
     if (needs_bs)
         parfor (size_t k = 0; k < nvals; ++k)
             val[k] = ensure_byteorder64(val[k], true);
+
+    volatile long clock6 = CLOCK();
 
     GrB_Matrix A;
 
@@ -229,6 +245,8 @@ make_mtx_from_binfile (GrB_Matrix *A_out, GrB_Index * NV_out, GrB_Index * NE_out
     info = GxB_Matrix_import_CSR (&A, GrB_UINT64, nrows, ncols, &off, &colind, (void**)&val, (nrows+1)*sizeof(GrB_Index), nvals*sizeof(GrB_Index), nvals*sizeof(uint64_t), 0, 0, GrB_NULL);
 #endif
 
+    volatile long clock7 = CLOCK();
+
     if (info != GrB_SUCCESS)
         DIE ("Importing matrix %s failed: %ld\n", name, (long)info);
 
@@ -237,6 +255,8 @@ make_mtx_from_binfile (GrB_Matrix *A_out, GrB_Index * NV_out, GrB_Index * NE_out
 #if !defined(USE_SUITESPARSE)
     free (val); free (colind); free (off);
 #endif
+
+    fprintf (stderr, "clocks %ld %ld %ld %ld %ld %ld %ld\n", clock1, clock2, clock3, clock4, clock5, clock6, clock7);
 
     return GrB_SUCCESS;
 }
