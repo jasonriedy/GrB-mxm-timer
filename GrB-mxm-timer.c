@@ -191,7 +191,7 @@ main (int argc, char **argv)
         hooks_region_begin ("Generating matrix A");
     }
 
-    if (fd >= 0 || args.dump_flag) {
+    if (fd < 0 || args.dump_flag) {
         info = make_A (&A, NV, NE, args.NE_chunk_size_arg);
     } else {
         DEBUG_PRINT("Reading A ... ");
@@ -215,7 +215,12 @@ main (int argc, char **argv)
     }
 
     double A_time = 0.0;
-    if (!args.no_time_A_flag) A_time = hooks_region_end ();
+    if (!args.no_time_A_flag) {
+        GrB_Index nvals;
+        GrB_Matrix_nvals (&nvals, A);
+        hooks_set_attr_i64 ("nvals", nvals);
+        A_time = hooks_region_end ();
+    }
     if (info != GrB_SUCCESS)
         DIE("Error making A: %ld\n", (long)info);
 
@@ -232,7 +237,7 @@ main (int argc, char **argv)
             hooks_region_begin ("Generating Bini");
         }
 
-        if (fd >= 0 || args.dump_flag) {
+        if (fd < 0 || args.dump_flag) {
             info = make_B (&Bini, NV, args.b_ncols_arg, args.b_used_ncols_arg, args.b_nents_col_arg);
         } else {
             DEBUG_PRINT("Reading B ... ");
