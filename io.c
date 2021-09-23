@@ -15,6 +15,7 @@
 #include <assert.h>
 
 #include <intrinsics.h>
+#include <memoryweb/memoryweb.h>
 
 #include <GraphBLAS.h>
 #if !defined(USE_SUITESPARSE)
@@ -196,6 +197,7 @@ make_mtx_from_binfile (GrB_Matrix *A_out, GrB_Index * NV_out, GrB_Index * NE_out
     if (NV_out) *NV_out = nrows;
     if (NE_out) *NE_out = nvals;
 
+    MIGRATE(&clock1);
     volatile long clock2 = CLOCK();
 
     off = malloc((nrows+1) * sizeof(*off));
@@ -204,6 +206,7 @@ make_mtx_from_binfile (GrB_Matrix *A_out, GrB_Index * NV_out, GrB_Index * NE_out
     if (!off || !colind || !val)
         DIE_PERROR("Memory allocation failed reading matrix %s: ", name);
 
+    MIGRATE(&clock1);
     volatile long clock3 = CLOCK();
 
     // The nrows+1 offsets
@@ -215,6 +218,7 @@ make_mtx_from_binfile (GrB_Matrix *A_out, GrB_Index * NV_out, GrB_Index * NE_out
     if (off[nrows] != nvals)
         DIE("off[nrows] != nvals reading %s\n", name);
 
+    MIGRATE(&clock1);
     volatile long clock4 = CLOCK();
 
     // Now the nvals colinds
@@ -227,6 +231,7 @@ make_mtx_from_binfile (GrB_Matrix *A_out, GrB_Index * NV_out, GrB_Index * NE_out
         }
     }
 
+    MIGRATE(&clock1);
     volatile long clock5 = CLOCK();
 
     // Finally the nvals values
@@ -235,6 +240,7 @@ make_mtx_from_binfile (GrB_Matrix *A_out, GrB_Index * NV_out, GrB_Index * NE_out
         parfor (size_t k = 0; k < nvals; ++k)
             val[k] = ensure_byteorder64(val[k], true);
 
+    MIGRATE(&clock1);
     volatile long clock6 = CLOCK();
 
     GrB_Matrix A;
@@ -245,6 +251,7 @@ make_mtx_from_binfile (GrB_Matrix *A_out, GrB_Index * NV_out, GrB_Index * NE_out
     info = GxB_Matrix_import_CSR (&A, GrB_UINT64, nrows, ncols, &off, &colind, (void**)&val, (nrows+1)*sizeof(GrB_Index), nvals*sizeof(GrB_Index), nvals*sizeof(uint64_t), 0, 0, GrB_NULL);
 #endif
 
+    MIGRATE(&clock1);
     volatile long clock7 = CLOCK();
 
     if (info != GrB_SUCCESS)

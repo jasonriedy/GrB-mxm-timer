@@ -11,6 +11,8 @@
 #include <LucataGraphBLAS.h>
 #endif
 
+#include <intrinsics.h>
+
 #include "compat.h"
 #include "cmdline.h"
 
@@ -181,6 +183,7 @@ main (int argc, char **argv)
     if (info != GrB_SUCCESS)
         DIE("Error initializing GraphBLAS: %ld\n", (long)info);
 
+    volatile long A_clock_0;
     VERBOSE_PRINT("Creating A... ");
     if (!args.no_time_A_flag) {
         hooks_set_attr_i64 ("scale", SCALE);
@@ -189,6 +192,7 @@ main (int argc, char **argv)
         hooks_set_attr_f64 ("B", args.B_arg);
         hooks_set_attr_f64 ("noisefact", NOISEFACT);
         hooks_region_begin ("Generating matrix A");
+        A_clock_0 = CLOCK();
     }
 
     if (fd < 0 || args.dump_flag) {
@@ -219,7 +223,9 @@ main (int argc, char **argv)
         GrB_Index nvals;
         GrB_Matrix_nvals (&nvals, A);
         hooks_set_attr_i64 ("nvals", nvals);
+        volatile long A_clock_1 = CLOCK();
         A_time = hooks_region_end ();
+        fprintf (stderr, "A_clocks   %ld %ld   %ld\n", A_clock_0, A_clock_1, A_clock_1 - A_clock_0);
     }
     if (info != GrB_SUCCESS)
         DIE("Error making A: %ld\n", (long)info);
