@@ -42,6 +42,7 @@ const char *gengetopt_args_info_help[] = {
   "  -B, --B=FLOAT            R-MAT upper right & lower left quadrant probability\n                             (default=`0.1')",
   "  -N, --noisefact=FLOAT    Noise factor on each recursion  (default=`0.1')",
   "      --run-powers         Run powers of the generated A matrix rather than\n                             applying A to B  (default=off)",
+  "      --ATA                Multiply A^T * A once.  (default=off)",
   "",
   "  -f, --filename=STRING    Filename to read/write for a CSR format",
   "      --dump               Write a file to read  (default=off)",
@@ -92,6 +93,7 @@ void clear_given (struct gengetopt_args_info *args_info)
   args_info->B_given = 0 ;
   args_info->noisefact_given = 0 ;
   args_info->run_powers_given = 0 ;
+  args_info->ATA_given = 0 ;
   args_info->filename_given = 0 ;
   args_info->dump_given = 0 ;
   args_info->binary_given = 0 ;
@@ -121,6 +123,7 @@ void clear_args (struct gengetopt_args_info *args_info)
   args_info->noisefact_arg = 0.1;
   args_info->noisefact_orig = NULL;
   args_info->run_powers_flag = 0;
+  args_info->ATA_flag = 0;
   args_info->filename_arg = NULL;
   args_info->filename_orig = NULL;
   args_info->dump_flag = 0;
@@ -156,18 +159,19 @@ void init_args_info(struct gengetopt_args_info *args_info)
   args_info->B_help = gengetopt_args_info_help[5] ;
   args_info->noisefact_help = gengetopt_args_info_help[6] ;
   args_info->run_powers_help = gengetopt_args_info_help[7] ;
-  args_info->filename_help = gengetopt_args_info_help[9] ;
-  args_info->dump_help = gengetopt_args_info_help[10] ;
-  args_info->binary_help = gengetopt_args_info_help[11] ;
-  args_info->b_ncols_help = gengetopt_args_info_help[13] ;
-  args_info->b_used_ncols_help = gengetopt_args_info_help[14] ;
-  args_info->b_nents_col_help = gengetopt_args_info_help[15] ;
-  args_info->khops_help = gengetopt_args_info_help[17] ;
-  args_info->NE_chunk_size_help = gengetopt_args_info_help[19] ;
-  args_info->verbose_help = gengetopt_args_info_help[20] ;
-  args_info->no_time_A_help = gengetopt_args_info_help[21] ;
-  args_info->no_time_B_help = gengetopt_args_info_help[22] ;
-  args_info->no_time_iter_help = gengetopt_args_info_help[23] ;
+  args_info->ATA_help = gengetopt_args_info_help[8] ;
+  args_info->filename_help = gengetopt_args_info_help[10] ;
+  args_info->dump_help = gengetopt_args_info_help[11] ;
+  args_info->binary_help = gengetopt_args_info_help[12] ;
+  args_info->b_ncols_help = gengetopt_args_info_help[14] ;
+  args_info->b_used_ncols_help = gengetopt_args_info_help[15] ;
+  args_info->b_nents_col_help = gengetopt_args_info_help[16] ;
+  args_info->khops_help = gengetopt_args_info_help[18] ;
+  args_info->NE_chunk_size_help = gengetopt_args_info_help[20] ;
+  args_info->verbose_help = gengetopt_args_info_help[21] ;
+  args_info->no_time_A_help = gengetopt_args_info_help[22] ;
+  args_info->no_time_B_help = gengetopt_args_info_help[23] ;
+  args_info->no_time_iter_help = gengetopt_args_info_help[24] ;
   
 }
 
@@ -317,6 +321,8 @@ cmdline_parser_dump(FILE *outfile, struct gengetopt_args_info *args_info)
     write_into_file(outfile, "noisefact", args_info->noisefact_orig, 0);
   if (args_info->run_powers_given)
     write_into_file(outfile, "run-powers", 0, 0 );
+  if (args_info->ATA_given)
+    write_into_file(outfile, "ATA", 0, 0 );
   if (args_info->filename_given)
     write_into_file(outfile, "filename", args_info->filename_orig, 0);
   if (args_info->dump_given)
@@ -613,6 +619,7 @@ cmdline_parser_internal (
         { "B",	1, NULL, 'B' },
         { "noisefact",	1, NULL, 'N' },
         { "run-powers",	0, NULL, 0 },
+        { "ATA",	0, NULL, 0 },
         { "filename",	1, NULL, 'f' },
         { "dump",	0, NULL, 0 },
         { "binary",	0, NULL, 0 },
@@ -774,6 +781,18 @@ cmdline_parser_internal (
             if (update_arg((void *)&(args_info->run_powers_flag), 0, &(args_info->run_powers_given),
                 &(local_args_info.run_powers_given), optarg, 0, 0, ARG_FLAG,
                 check_ambiguity, override, 1, 0, "run-powers", '-',
+                additional_error))
+              goto failure;
+          
+          }
+          /* Multiply A^T * A once..  */
+          else if (strcmp (long_options[option_index].name, "ATA") == 0)
+          {
+          
+          
+            if (update_arg((void *)&(args_info->ATA_flag), 0, &(args_info->ATA_given),
+                &(local_args_info.ATA_given), optarg, 0, 0, ARG_FLAG,
+                check_ambiguity, override, 1, 0, "ATA", '-',
                 additional_error))
               goto failure;
           

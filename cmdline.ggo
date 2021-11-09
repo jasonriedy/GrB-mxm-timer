@@ -9,6 +9,7 @@ option "A" A "R-MAT upper left quadrant probability" float optional default="0.5
 option "B" B "R-MAT upper right & lower left quadrant probability" float optional default="0.1"
 option "noisefact" N "Noise factor on each recursion" float optional default="0.1"
 option "run-powers" - "Run powers of the generated A matrix rather than applying A to B" flag off
+option "ATA" - "Multiply A^T * A once." flag off
 
 text ""
 

@@ -56,6 +56,8 @@ struct gengetopt_args_info
   const char *noisefact_help; /**< @brief Noise factor on each recursion help description.  */
   int run_powers_flag;	/**< @brief Run powers of the generated A matrix rather than applying A to B (default=off).  */
   const char *run_powers_help; /**< @brief Run powers of the generated A matrix rather than applying A to B help description.  */
+  int ATA_flag;	/**< @brief Multiply A^T * A once. (default=off).  */
+  const char *ATA_help; /**< @brief Multiply A^T * A once. help description.  */
   char * filename_arg;	/**< @brief Filename to read/write for a CSR format.  */
   char * filename_orig;	/**< @brief Filename to read/write for a CSR format original value given at command line.  */
   const char *filename_help; /**< @brief Filename to read/write for a CSR format help description.  */
@@ -96,6 +98,7 @@ struct gengetopt_args_info
   unsigned int B_given ;	/**< @brief Whether B was given.  */
   unsigned int noisefact_given ;	/**< @brief Whether noisefact was given.  */
   unsigned int run_powers_given ;	/**< @brief Whether run-powers was given.  */
+  unsigned int ATA_given ;	/**< @brief Whether ATA was given.  */
   unsigned int filename_given ;	/**< @brief Whether filename was given.  */
   unsigned int dump_given ;	/**< @brief Whether dump was given.  */
   unsigned int binary_given ;	/**< @brief Whether binary was given.  */

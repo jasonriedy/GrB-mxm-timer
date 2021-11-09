@@ -36,7 +36,9 @@ generator.o: generator.c globals.h prng.h compat.h
 prng.o: prng.c prng.h globals.h
 io.o: io.c io.h globals.h compat.h
 globals.o: globals.c globals.h
+ifndef TARGET_MWX
 hooks.o: hooks.c hooks.h
+endif
 
 # Ugly hack.
 GrB-mxm-timer.mwx: GrB-mxm-timer

@@ -122,6 +122,40 @@ timed_loop (GrB_Matrix B, GrB_Matrix A, const int nhop)
 
 struct gengetopt_args_info args;
 
+static GrB_Info
+run_ATA (GrB_Matrix A)
+{
+  GrB_Matrix C;
+  GrB_Index nr, nc;
+  GrB_Type type;
+  GrB_Info info = GrB_SUCCESS;
+
+  info = GrB_Matrix_ncols (&nc, A);
+  if (info != GrB_SUCCESS) goto done;
+  info = GrB_Matrix_nrows (&nr, A);
+  if (info != GrB_SUCCESS) goto done;
+  info = GxB_Matrix_type (&type, A);
+  if (info != GrB_SUCCESS) goto done;
+
+  info = GrB_Matrix_new (&C, type, nc, nc);
+  if (info != GrB_SUCCESS) goto augh;
+
+  VERBOSE_PRINT("Running A^T * A... ");
+  hooks_region_begin ("ATA");
+
+  info = GrB_mxm (C, GrB_NULL, GrB_NULL, GxB_PLUS_TIMES_INT64, A, A, GrB_DESC_T0);
+
+  double iter_time = 0.0;
+  iter_time = hooks_region_end ();
+  VERBOSE_PRINT("%g ms\n", iter_time);
+
+ augh:
+  GrB_free (&C);
+
+ done:
+  return info;
+}
+
 int
 main (int argc, char **argv)
 {
@@ -135,17 +169,24 @@ main (int argc, char **argv)
     if (args.verbose_given)
         verbose = args.verbose_arg;
 
-    // Parse the khops arg
     int n_khops = 0;
-    long *khops = malloc (strlen (args.khops_arg) * sizeof (*khops));
-    if (!khops) {
+    long *khops = NULL;
+    long one_hop = 1;
+    if (args.ATA_flag) {
+      khops = &one_hop;
+      n_khops = 1;
+    } else {
+      // Parse the khops arg
+      n_khops = 0;
+      khops = malloc (strlen (args.khops_arg) * sizeof (*khops));
+      if (!khops) {
         perror ("Cannot malloc khops");
         exit (1);
-    }
-    DEBUG_PRINT("parsing hops\n");
-    char *saveptr = NULL, *token = NULL;
-    char *inputptr = args.khops_arg;
-    for (;;) {
+      }
+      DEBUG_PRINT("parsing hops\n");
+      char *saveptr = NULL, *token = NULL;
+      char *inputptr = args.khops_arg;
+      for (;;) {
         token = strtok_r (inputptr, " ,\n", &saveptr);
         DEBUG_PRINT("hop %d  %p %p %p\n", n_khops, token, inputptr, saveptr);
         inputptr = NULL;
@@ -153,14 +194,15 @@ main (int argc, char **argv)
         errno = 0;
         long hop = strtol (token, NULL, 10);
         if (hop <= 0)
-            DIE("Invalid hop value: %ld\n", hop);
+          DIE("Invalid hop value: %ld\n", hop);
 
         if (errno)
-            DIE_PERROR("Error parsing hop %d", n_khops+1);
+          DIE_PERROR("Error parsing hop %d", n_khops+1);
 
         khops[n_khops++] = hop;
+      }
+      DEBUG_PRINT("done parsing hops\n");
     }
-    DEBUG_PRINT("done parsing hops\n");
 
     int fd = -1;
     if (args.filename_arg)
@@ -228,7 +270,7 @@ main (int argc, char **argv)
 
     VERBOSE_PRINT("%g ms\n", A_time);
 
-    if (!args.run_powers_flag) {
+    if (!args.run_powers_flag && !args.ATA_flag) {
         VERBOSE_PRINT("Creating Bini... ");
         if (!args.no_time_B_flag) {
             hooks_set_attr_i64 ("b-ncols", args.b_ncols_arg);
@@ -267,7 +309,7 @@ main (int argc, char **argv)
 
     if (fd >= 0 || !args.dump_flag) {
         for (int k = 0; k < n_khops; ++k) {
-            if (args.run_powers_flag)
+            if (args.run_powers_flag || args.ATA_flag)
                 info = GrB_Matrix_dup (&B, A);
             else
                 info = GrB_Matrix_dup (&B, Bini);
@@ -285,7 +327,7 @@ main (int argc, char **argv)
             info = timed_loop (B, A, khops[k]);
 
             double iter_time = 0.0;
-            if (!args.no_time_iter_flag) hooks_region_end ();
+            if (!args.no_time_iter_flag) iter_time = hooks_region_end ();
             VERBOSE_PRINT("%g ms\n", iter_time);
 
             GrB_free (&B);
