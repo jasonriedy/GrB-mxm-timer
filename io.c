@@ -64,7 +64,11 @@ make_mtx_from_file (GrB_Matrix *A_out, GrB_Index * NV_out, GrB_Index * NE_out, i
     uint64_t *val = NULL;
 
     // For text, "reopen" for the f* family.
-    FILE *f = fdopen (fd, "r");
+    errno = 0;
+    int newfd = dup (fd);
+    if (newfd < 0)
+      DIE_PERROR("Cannot duplicate file descriptor");
+    FILE *f = fdopen (newfd, "r");
     if (!f)
         DIE_PERROR("Cannot move fd %d to FILE*", fd);
 
@@ -251,7 +255,11 @@ make_file_from_mtx (GrB_Matrix A, const char *name, int fd)
     GrB_Index *colind = NULL;
     uint64_t *val = NULL;
 
-    FILE *f = fdopen (fd, "w");
+    errno = 0;
+    int newfd = dup (fd);
+    if (newfd < 0)
+      DIE_PERROR("Cannot duplicate file descriptor");
+    FILE *f = fdopen (newfd, "w");
 
 #if !defined(USE_SUITESPARSE)
     info = LGB_Matrix_export_CSR_UINT64 (A, NULL, &nrows, &ncols, &off, &colind, &val, NULL);
