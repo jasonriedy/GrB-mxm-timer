@@ -179,10 +179,8 @@ main (int argc, char **argv)
       // Parse the khops arg
       n_khops = 0;
       khops = malloc (strlen (args.khops_arg) * sizeof (*khops));
-      if (!khops) {
-        perror ("Cannot malloc khops");
-        exit (1);
-      }
+      if (!khops)
+        DIE_PERROR("Cannot malloc khops");
       DEBUG_PRINT("parsing hops\n");
       char *saveptr = NULL, *token = NULL;
       char *inputptr = args.khops_arg;
