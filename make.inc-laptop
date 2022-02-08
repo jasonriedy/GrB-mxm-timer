@@ -1,11 +1,11 @@
 # -*- Makefile -*-
 CC := gcc
 LD := g++
-LGrB_dir := ${HOME}/Projects/lucata/LucataGraphBLAS-baseline
-#CFLAGS := -ggdb
-CFLAGS := -ggdb -march=native -O3
+LGrB_dir := ${HOME}/Projects/lucata/LucataGraphBLAS
+CFLAGS := -ggdb -fPIC
+## CFLAGS := -ggdb -march=native -O3
 LDFLAGS += -L$(LGrB_dir)/build/src/lib -L/usr/local/emu/x86/lib
 CPPFLAGS += -DNDEBUG
-CPPFLAGS += -I$(LGrB_dir)/src/include -I/usr/local/emu/include
-LDLIBS += -lLucataGraphBLAS -lemu_c_utils -lstdc++
+CPPFLAGS += -I$(LGrB_dir)/include -I$(LGrB_dir)/src/include -I/usr/local/emu/include
+LDLIBS += -lLucataGraphBLAS /home/ejr/Projects/lucata/emu-21.06/x86/lib/libemu_c_utils.a -lstdc++
 

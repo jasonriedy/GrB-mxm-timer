@@ -10,6 +10,7 @@ int64_t NV, NE, Z, Zinv;
 uint64_t Z_hi, Z_low, Zinv_hi, Zinv_low;
 float A, B, NOISEFACT;
 int SCALE_BIG_THRESH;
+int gen_tree;
 
 static int
 floor_log2 (size_t x)
@@ -71,8 +72,9 @@ extended_gcd (int64_t a, int64_t b,
 
 void
 init_globals (int scale, int ef, int maxweight, int nroot,
-	      float a, float b, float noisefact)
+	      float a, float b, float noisefact, int gen_tree_in)
 {
+  gen_tree = gen_tree_in;
   SCALE = scale;
   NV = ((int64_t)1) << SCALE;
   EF = ef;

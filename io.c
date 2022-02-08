@@ -39,15 +39,15 @@ open_filename (const char* filename) {
     if (args.dump_flag) {
         if (!strcmp(filename, "-"))
             DIE("Cannot write to stdout");
-        f = open (args.filename_arg, O_CREAT|O_WRONLY|O_TRUNC, 0666); //fopen (args.filename_arg, "w+");
+        f = open (filename, O_CREAT|O_WRONLY|O_TRUNC, 0666); //fopen (filename, "w+");
     } else {
         if (!strcmp(filename, "-"))
             f = dup(0); // stdin
         else
-            f = open (args.filename_arg, O_RDONLY); //fopen (args.filename_arg, "r");
+          f = open (filename, O_RDONLY); //fopen (filename, "r");
     }
     if (errno)
-        DIE_PERROR("Error opening \"%s\": ", args.filename_arg);
+        DIE_PERROR("Error opening \"%s\": ", filename);
     return f;
 }
 

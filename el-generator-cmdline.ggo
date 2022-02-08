@@ -1,0 +1,23 @@
+package "el-generator"
+version "0"
+versiontext "Copyright 2022, Lucata Corporation"
+description "Generates an edge list dump."
+
+option "scale" s "Scale (log2 # vertices in A)" int optional default="16"
+option "edgefactor" e "Edge factor, so # edges = ef * 2^scale" int optional default="8"
+option "A" A "R-MAT upper left quadrant probability" float optional default="0.55"
+option "B" B "R-MAT upper right & lower left quadrant probability" float optional default="0.1"
+option "noisefact" N "Noise factor on each recursion" float optional default="0.1"
+option "tree" T "Generate a random spanning tree to join all components" flag off
+
+text ""
+
+option "filename" f "Filename for the edge list, - for stdout" string optional
+option "binary" b "File is in binary format" flag off
+option "neo4j" - "Output the CSV Neo4J expects" flag off
+
+text ""
+
+# absolutely no good idea for NE-chunk-size
+option "NE-chunk-size" - "Number of edges to generate in a chunk." int optional default="1048576"
+option "verbose" - "Provide status updates via stdout." int optional argoptional default="1"

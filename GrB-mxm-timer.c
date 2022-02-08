@@ -108,9 +108,11 @@ static GrB_Info
 timed_loop (GrB_Matrix B, GrB_Matrix A, const int nhop)
 {
     GrB_Info info;
+    extern long time_1, time_2, time_3;
     for (int k = 0; k < nhop; ++k) {
         info = GrB_mxm (B, GrB_NULL, GrB_NULL, GxB_MIN_FIRST_FP64, A, B, GrB_DESC_R);
         if (info != GrB_SUCCESS) return info;
+        VERBOSE_PRINT("times %ld %ld %ld\n", time_1, time_2, time_3);
     }
 #if !defined(USE_SUITESPARSE)
     GrB_wait();
@@ -210,7 +212,9 @@ main (int argc, char **argv)
 
     init_globals (args.scale_arg, args.edgefactor_arg, 255,
                   1, // unused
-                  args.A_arg, args.B_arg, args.noisefact_arg);
+                  args.A_arg, args.B_arg, args.noisefact_arg,
+                  1 // gen_tree
+                  );
 
     GrB_Info info;
     GrB_Matrix A, Bini, B;

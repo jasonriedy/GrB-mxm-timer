@@ -1,6 +1,6 @@
 package "GrB-mxm-timer"
 version "0"
-versiontext "Copyright 2021, Lucata Corporation"
+versiontext "Copyright 2021-2022, Lucata Corporation"
 description "Times the iteration of B = A*B"
 
 option "scale" s "Scale (log2 # vertices in A)" int optional default="16"

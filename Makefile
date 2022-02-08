@@ -11,18 +11,21 @@ ifndef TARGET_MWX
 OBJS += hooks.o
 endif
 
+OBJS_ELGEN = el-generator.o el-generator-cmdline.o generator.o prng.o globals.o
+
 CPPFLAGS += -Irandom123/include
 LDLIBS += -lm
 
 ifdef TARGET_MWX
 TARGET_EXECUTABLE = GrB-mxm-timer.mwx
 else
-TARGET_EXECUTABLE = GrB-mxm-timer
+TARGET_EXECUTABLE = GrB-mxm-timer el-generator
 endif
 
 all: $(TARGET_EXECUTABLE)
 
 GrB-mxm-timer: $(OBJS)
+el-generator: $(OBJS_ELGEN)
 
 %.mwx: %
 	cp $< $@
@@ -30,8 +33,13 @@ GrB-mxm-timer: $(OBJS)
 cmdline.c cmdline.h &: cmdline.ggo
 	gengetopt < $^
 
+el-generator-cmdline.c el-generator-cmdline.h &: el-generator-cmdline.ggo
+	gengetopt -F el-generator-cmdline < $^
+
 GrB-mxm-timer.o: GrB-mxm-timer.c globals.h generator.h prng.h
+el-generator.o: el-generator.c globals.h generator.h prng.h
 cmdline.o: cmdline.c
+el-generator-cmdline.o: el-generator-cmdline.c
 generator.o: generator.c globals.h prng.h compat.h
 prng.o: prng.c prng.h globals.h
 io.o: io.c io.h globals.h compat.h

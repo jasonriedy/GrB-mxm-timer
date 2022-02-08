@@ -1,6 +1,7 @@
 *.o
 *~
 GrB-mxm-timer
+el-generator
 make.inc
 *.cdc
 *.hdd

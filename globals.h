@@ -58,8 +58,9 @@ extern const int64_t Z, Zinv;
 extern const uint64_t Z_hi, Z_low, Zinv_hi, Zinv_low;
 extern const float A, B, NOISEFACT;
 extern const int SCALE_BIG_THRESH;
+extern int gen_tree;
 #endif
 
-void init_globals (int, int, int, int, float, float, float);
+void init_globals (int, int, int, int, float, float, float, int);
 
 #endif /* GLOBALS_HEADER_ */

@@ -8,5 +8,7 @@ void edge_list (int64_t * restrict, int64_t * restrict, uint8_t * restrict,
 		const int64_t, const int64_t);
 void edge_list_64 (int64_t * restrict, int64_t * restrict, uint64_t * restrict,
                    const int64_t, const int64_t);
+void edge_list_aos_64 (int64_t * restrict,
+                       const int64_t, const int64_t);
 
 #endif /* GENERATOR_HEADER_ */

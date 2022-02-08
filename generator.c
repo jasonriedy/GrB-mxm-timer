@@ -120,6 +120,35 @@ edge_list_64 (int64_t * restrict i, int64_t * restrict j, uint64_t * restrict w,
   }
 }
 
+void
+edge_list_aos_64 (int64_t * restrict el,
+                  const int64_t ne_begin, const int64_t ne_len)
+{
+  assert (SCALE);
+
+  if (SCALE < SCALE_BIG_THRESH) {
+    parfor (int64_t t = 0; t < ne_len; ++t) {
+      const int64_t kp = ne_begin + t;
+      const int64_t k = loc_to_idx_small (kp);
+      uint8_t w_scalar;
+      make_edge (k, &el[3*t], &el[3*t+1], &w_scalar);
+      assert (i[t] < NV);
+      assert (j[t] < NV);
+      el[3*t+2] = w_scalar;
+    }
+  } else {
+    parfor (int64_t t = 0; t < ne_len; ++t) {
+      const int64_t kp = ne_begin + t;
+      const int64_t k = loc_to_idx_big (kp);
+      uint8_t w_scalar;
+      make_edge (k, &el[3*t], &el[3*t+1], &w_scalar);
+      assert (i[t] < NV);
+      assert (j[t] < NV);
+      el[3*t+2] = w_scalar;
+    }
+  }
+}
+
 /* Replacable for system optimizations. */
 struct i64_pair
 toss_darts (const float * rnd)
