@@ -177,7 +177,7 @@ make_edge (int64_t k, int64_t * restrict i, int64_t * restrict j,
   assert (wgt > 0);
   assert (wgt <= MAXWEIGHT);
 
-  if (k < NV) {
+  if (gen_tree && k < NV) {
     /* Tree edge. */
     v.v1 = k/2;
     v.v2 = k+1;
@@ -205,7 +205,7 @@ make_edge_endpoints (int64_t k, int64_t * restrict i, int64_t * restrict j)
 {
   struct i64_pair v;
 
-  if (k < NV) {
+  if (gen_tree && k < NV) {
     /* Tree edge. */
     v.v1 = k/2;
     v.v2 = k+1;
