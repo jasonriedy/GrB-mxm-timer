@@ -120,6 +120,10 @@ edge_list_64 (int64_t * restrict i, int64_t * restrict j, uint64_t * restrict w,
   }
 }
 
+#define elI(k) el[3*(k)]
+#define elJ(k) el[1+3*(k)]
+#define elV(k) el[2+3*(k)]
+
 void
 edge_list_aos_64 (int64_t * restrict el,
                   const int64_t ne_begin, const int64_t ne_len)
@@ -131,20 +135,20 @@ edge_list_aos_64 (int64_t * restrict el,
       const int64_t kp = ne_begin + t;
       const int64_t k = loc_to_idx_small (kp);
       uint8_t w_scalar;
-      make_edge (k, &el[3*t], &el[3*t+1], &w_scalar);
-      assert (i[t] < NV);
-      assert (j[t] < NV);
-      el[3*t+2] = w_scalar;
+      make_edge (k, &elI(t), &elJ(t), &w_scalar);
+      assert (elI(t) < NV);
+      assert (elJ(t) < NV);
+      elV(t) = w_scalar;
     }
   } else {
     parfor (int64_t t = 0; t < ne_len; ++t) {
       const int64_t kp = ne_begin + t;
       const int64_t k = loc_to_idx_big (kp);
       uint8_t w_scalar;
-      make_edge (k, &el[3*t], &el[3*t+1], &w_scalar);
-      assert (i[t] < NV);
-      assert (j[t] < NV);
-      el[3*t+2] = w_scalar;
+      make_edge (k, &elI(t), &elJ(t), &w_scalar);
+      assert (elI(t) < NV);
+      assert (elJ(t) < NV);
+      elV(t) = w_scalar;
     }
   }
 }
