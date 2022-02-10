@@ -35,7 +35,7 @@ int main(int argc, char **argv) {
     verbose = args.verbose_arg;
 
   FILE *f = stdout;
-  if (strcmp(args.filename_arg, "-")) {
+  if (args.filename_given && strcmp(args.filename_arg, "-")) {
     f = fopen(args.filename_arg, "w");
   }
   if (!f)
