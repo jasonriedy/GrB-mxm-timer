@@ -30,10 +30,10 @@ el-generator: $(OBJS_ELGEN)
 %.mwx: %
 	cp $< $@
 
-cmdline.c cmdline.h &: cmdline.ggo
+cmdline.c cmdline.h : cmdline.ggo
 	gengetopt < $^
 
-el-generator-cmdline.c el-generator-cmdline.h &: el-generator-cmdline.ggo
+el-generator-cmdline.c el-generator-cmdline.h : el-generator-cmdline.ggo
 	gengetopt -F el-generator-cmdline < $^
 
 GrB-mxm-timer.o: GrB-mxm-timer.c globals.h generator.h prng.h

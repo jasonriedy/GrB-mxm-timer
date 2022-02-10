@@ -35,8 +35,9 @@ int main(int argc, char **argv) {
     verbose = args.verbose_arg;
 
   FILE *f = stdout;
-  if (args.filename_given && !strcmp(args.filename_arg, "-"))
+  if (strcmp(args.filename_arg, "-")) {
     f = fopen(args.filename_arg, "w");
+  }
   if (!f)
     DIE_PERROR("Error opening \"%s\": ", args.filename_arg);
 
@@ -87,4 +88,4 @@ int main(int argc, char **argv) {
   free(el);
 
   VERBOSE_PRINT("DONE\n");
-}
+  }
