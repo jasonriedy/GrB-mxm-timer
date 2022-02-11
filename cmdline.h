@@ -77,7 +77,7 @@ struct gengetopt_args_info
   char * khops_arg;	/**< @brief Number of iterations / hops (can be a space-delim list) (default='2 4 8').  */
   char * khops_orig;	/**< @brief Number of iterations / hops (can be a space-delim list) original value given at command line.  */
   const char *khops_help; /**< @brief Number of iterations / hops (can be a space-delim list) help description.  */
-  int NE_chunk_size_arg;	/**< @brief Number of edges to generate in a chunk. (default='1048576').  */
+  long NE_chunk_size_arg;	/**< @brief Number of edges to generate in a chunk. (default='1048576').  */
   char * NE_chunk_size_orig;	/**< @brief Number of edges to generate in a chunk. original value given at command line.  */
   const char *NE_chunk_size_help; /**< @brief Number of edges to generate in a chunk. help description.  */
   int verbose_arg;	/**< @brief Provide status updates via stdout. (default='1').  */

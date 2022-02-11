@@ -30,7 +30,7 @@ option "khops" k "Number of iterations / hops (can be a space-delim list)" strin
 text ""
 
 # absolutely no good idea for NE-chunk-size
-option "NE-chunk-size" - "Number of edges to generate in a chunk." int optional default="1048576"
+option "NE-chunk-size" - "Number of edges to generate in a chunk." long optional default="1048576"
 option "verbose" - "Provide status updates via stdout." int optional argoptional default="1"
 option "no-time-A" - "Do not time A" flag off
 option "no-time-B" - "Do not time B" flag off

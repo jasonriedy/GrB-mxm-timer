@@ -34,21 +34,21 @@ const char *gengetopt_args_info_versiontext = "Copyright 2022, Lucata Corporatio
 const char *gengetopt_args_info_description = "Generates an edge list dump.";
 
 const char *gengetopt_args_info_help[] = {
-  "  -h, --help               Print help and exit",
-  "  -V, --version            Print version and exit",
-  "  -s, --scale=INT          Scale (log2 # vertices in A)  (default=`16')",
-  "  -e, --edgefactor=INT     Edge factor, so # edges = ef * 2^scale\n                             (default=`8')",
-  "  -A, --A=FLOAT            R-MAT upper left quadrant probability\n                             (default=`0.55')",
-  "  -B, --B=FLOAT            R-MAT upper right & lower left quadrant probability\n                             (default=`0.1')",
-  "  -N, --noisefact=FLOAT    Noise factor on each recursion  (default=`0.1')",
-  "  -T, --tree               Generate a random spanning tree to join all\n                             components  (default=off)",
+  "  -h, --help                Print help and exit",
+  "  -V, --version             Print version and exit",
+  "  -s, --scale=INT           Scale (log2 # vertices in A)  (default=`16')",
+  "  -e, --edgefactor=INT      Edge factor, so # edges = ef * 2^scale\n                              (default=`8')",
+  "  -A, --A=FLOAT             R-MAT upper left quadrant probability\n                              (default=`0.55')",
+  "  -B, --B=FLOAT             R-MAT upper right & lower left quadrant probability\n                              (default=`0.1')",
+  "  -N, --noisefact=FLOAT     Noise factor on each recursion  (default=`0.1')",
+  "  -T, --tree                Generate a random spanning tree to join all\n                              components  (default=off)",
   "",
-  "  -f, --filename=STRING    Filename for the edge list, - for stdout",
-  "  -b, --binary             File is in binary format  (default=off)",
-  "      --neo4j              Output the CSV Neo4J expects  (default=off)",
+  "  -f, --filename=STRING     Filename for the edge list, - for stdout",
+  "  -b, --binary              File is in binary format  (default=off)",
+  "      --neo4j               Output the CSV Neo4J expects  (default=off)",
   "",
-  "      --NE-chunk-size=INT  Number of edges to generate in a chunk.\n                             (default=`1048576')",
-  "      --verbose[=INT]      Provide status updates via stdout.  (default=`1')",
+  "      --NE-chunk-size=LONG  Number of edges to generate in a chunk.\n                              (default=`1048576')",
+  "      --verbose[=INT]       Provide status updates via stdout.  (default=`1')",
     0
 };
 
@@ -56,6 +56,7 @@ typedef enum {ARG_NO
   , ARG_FLAG
   , ARG_STRING
   , ARG_INT
+  , ARG_LONG
   , ARG_FLOAT
 } cmdline_parser_arg_type;
 
@@ -460,6 +461,9 @@ int update_arg(void *field, char **orig_field,
   case ARG_INT:
     if (val) *((int *)field) = strtol (val, &stop_char, 0);
     break;
+  case ARG_LONG:
+    if (val) *((long *)field) = (long)strtol (val, &stop_char, 0);
+    break;
   case ARG_FLOAT:
     if (val) *((float *)field) = (float)strtod (val, &stop_char);
     break;
@@ -478,6 +482,7 @@ int update_arg(void *field, char **orig_field,
   /* check numeric conversion */
   switch(arg_type) {
   case ARG_INT:
+  case ARG_LONG:
   case ARG_FLOAT:
     if (val && !(stop_char && *stop_char == '\0')) {
       fprintf(stderr, "%s: invalid numeric value: %s\n", package_name, val);
@@ -697,7 +702,7 @@ cmdline_parser_internal (
           
             if (update_arg( (void *)&(args_info->NE_chunk_size_arg), 
                  &(args_info->NE_chunk_size_orig), &(args_info->NE_chunk_size_given),
-                &(local_args_info.NE_chunk_size_given), optarg, 0, "1048576", ARG_INT,
+                &(local_args_info.NE_chunk_size_given), optarg, 0, "1048576", ARG_LONG,
                 check_ambiguity, override, 0, 0,
                 "NE-chunk-size", '-',
                 additional_error))

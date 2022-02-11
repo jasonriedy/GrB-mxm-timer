@@ -29,36 +29,36 @@ const char *gengetopt_args_info_purpose = "";
 
 const char *gengetopt_args_info_usage = "Usage: GrB-mxm-timer [OPTION]...";
 
-const char *gengetopt_args_info_versiontext = "Copyright 2021, Lucata Corporation";
+const char *gengetopt_args_info_versiontext = "Copyright 2021-2022, Lucata Corporation";
 
 const char *gengetopt_args_info_description = "Times the iteration of B = A*B";
 
 const char *gengetopt_args_info_help[] = {
-  "  -h, --help               Print help and exit",
-  "  -V, --version            Print version and exit",
-  "  -s, --scale=INT          Scale (log2 # vertices in A)  (default=`16')",
-  "  -e, --edgefactor=INT     Edge factor, so # edges = ef * 2^scale\n                             (default=`8')",
-  "  -A, --A=FLOAT            R-MAT upper left quadrant probability\n                             (default=`0.55')",
-  "  -B, --B=FLOAT            R-MAT upper right & lower left quadrant probability\n                             (default=`0.1')",
-  "  -N, --noisefact=FLOAT    Noise factor on each recursion  (default=`0.1')",
-  "      --run-powers         Run powers of the generated A matrix rather than\n                             applying A to B  (default=off)",
-  "      --ATA                Multiply A^T * A once.  (default=off)",
+  "  -h, --help                Print help and exit",
+  "  -V, --version             Print version and exit",
+  "  -s, --scale=INT           Scale (log2 # vertices in A)  (default=`16')",
+  "  -e, --edgefactor=INT      Edge factor, so # edges = ef * 2^scale\n                              (default=`8')",
+  "  -A, --A=FLOAT             R-MAT upper left quadrant probability\n                              (default=`0.55')",
+  "  -B, --B=FLOAT             R-MAT upper right & lower left quadrant probability\n                              (default=`0.1')",
+  "  -N, --noisefact=FLOAT     Noise factor on each recursion  (default=`0.1')",
+  "      --run-powers          Run powers of the generated A matrix rather than\n                              applying A to B  (default=off)",
+  "      --ATA                 Multiply A^T * A once.  (default=off)",
   "",
-  "  -f, --filename=STRING    Filename to read/write for a CSR format",
-  "      --dump               Write a file to read  (default=off)",
-  "      --binary             File is in binary format  (default=off)",
+  "  -f, --filename=STRING     Filename to read/write for a CSR format",
+  "      --dump                Write a file to read  (default=off)",
+  "      --binary              File is in binary format  (default=off)",
   "",
-  "  -c, --b-ncols=INT        Number of columns in B  (default=`16')",
-  "  -C, --b-used-ncols=INT   Number of columns actually used in the initial B\n                             (default=`1')",
-  "  -E, --b-nents-col=INT    Number of entries per column in the initial B\n                             (default=`1')",
+  "  -c, --b-ncols=INT         Number of columns in B  (default=`16')",
+  "  -C, --b-used-ncols=INT    Number of columns actually used in the initial B\n                              (default=`1')",
+  "  -E, --b-nents-col=INT     Number of entries per column in the initial B\n                              (default=`1')",
   "",
-  "  -k, --khops=STRING       Number of iterations / hops (can be a space-delim\n                             list)  (default=`2 4 8')",
+  "  -k, --khops=STRING        Number of iterations / hops (can be a space-delim\n                              list)  (default=`2 4 8')",
   "",
-  "      --NE-chunk-size=INT  Number of edges to generate in a chunk.\n                             (default=`1048576')",
-  "      --verbose[=INT]      Provide status updates via stdout.  (default=`1')",
-  "      --no-time-A          Do not time A  (default=off)",
-  "      --no-time-B          Do not time B  (default=off)",
-  "      --no-time-iter       Do not time iteration  (default=off)",
+  "      --NE-chunk-size=LONG  Number of edges to generate in a chunk.\n                              (default=`1048576')",
+  "      --verbose[=INT]       Provide status updates via stdout.  (default=`1')",
+  "      --no-time-A           Do not time A  (default=off)",
+  "      --no-time-B           Do not time B  (default=off)",
+  "      --no-time-iter        Do not time iteration  (default=off)",
     0
 };
 
@@ -66,6 +66,7 @@ typedef enum {ARG_NO
   , ARG_FLAG
   , ARG_STRING
   , ARG_INT
+  , ARG_LONG
   , ARG_FLOAT
 } cmdline_parser_arg_type;
 
@@ -519,6 +520,9 @@ int update_arg(void *field, char **orig_field,
   case ARG_INT:
     if (val) *((int *)field) = strtol (val, &stop_char, 0);
     break;
+  case ARG_LONG:
+    if (val) *((long *)field) = (long)strtol (val, &stop_char, 0);
+    break;
   case ARG_FLOAT:
     if (val) *((float *)field) = (float)strtod (val, &stop_char);
     break;
@@ -537,6 +541,7 @@ int update_arg(void *field, char **orig_field,
   /* check numeric conversion */
   switch(arg_type) {
   case ARG_INT:
+  case ARG_LONG:
   case ARG_FLOAT:
     if (val && !(stop_char && *stop_char == '\0')) {
       fprintf(stderr, "%s: invalid numeric value: %s\n", package_name, val);
@@ -828,7 +833,7 @@ cmdline_parser_internal (
           
             if (update_arg( (void *)&(args_info->NE_chunk_size_arg), 
                  &(args_info->NE_chunk_size_orig), &(args_info->NE_chunk_size_given),
-                &(local_args_info.NE_chunk_size_given), optarg, 0, "1048576", ARG_INT,
+                &(local_args_info.NE_chunk_size_given), optarg, 0, "1048576", ARG_LONG,
                 check_ambiguity, override, 0, 0,
                 "NE-chunk-size", '-',
                 additional_error))

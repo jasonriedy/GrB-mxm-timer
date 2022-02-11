@@ -19,5 +19,5 @@ option "neo4j" - "Output the CSV Neo4J expects" flag off
 text ""
 
 # absolutely no good idea for NE-chunk-size
-option "NE-chunk-size" - "Number of edges to generate in a chunk." int optional default="1048576"
+option "NE-chunk-size" - "Number of edges to generate in a chunk." long optional default="1048576"
 option "verbose" - "Provide status updates via stdout." int optional argoptional default="1"
