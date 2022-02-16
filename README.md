@@ -48,3 +48,7 @@ interface, override LDLIBS and possibly LDFLAGS to point to your build.
 To build completely as a MWX for the Gossamer cores, add similar
 overrides (as well as the compiler), and call `make TARGET_MWX=1`.
 
+"History"
+=========
+
+The included graph generator is based off of https://gitlab.com/ejr/graph500-old-v3 .
